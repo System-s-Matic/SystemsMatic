@@ -40,6 +40,10 @@ export class AuthController {
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // 'none' pour domaines différents en prod
       maxAge: 24 * 60 * 60 * 1000, // 24 heures
       path: '/',
+      // En production, spécifier le domaine si nécessaire
+      ...(process.env.NODE_ENV === 'production' && {
+        domain: undefined, // Laisser undefined pour permettre les sous-domaines
+      }),
     };
 
     // Log pour debug
@@ -87,6 +91,10 @@ export class AuthController {
       secure: process.env.NODE_ENV === 'production',
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // 'none' pour domaines différents en prod
       path: '/',
+      // En production, spécifier le domaine si nécessaire
+      ...(process.env.NODE_ENV === 'production' && {
+        domain: undefined, // Laisser undefined pour permettre les sous-domaines
+      }),
     };
 
     // Log pour debug
