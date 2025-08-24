@@ -64,36 +64,36 @@ export default function Navbar() {
 
           {/* Boutons d'authentification */}
           <div className="navbar__auth">
-            {!isLoading && (
+            {isLoading ? (
+              <div className="navbar__loading">
+                <span>Chargement...</span>
+              </div>
+            ) : user ? (
+              <div className="navbar__user-menu">
+                <span className="navbar__user-name">
+                  Bonjour, {user.firstName || user.username}
+                </span>
+                <button
+                  onClick={handleLogout}
+                  className="navbar__auth-link navbar__auth-link--logout"
+                >
+                  Déconnexion
+                </button>
+              </div>
+            ) : (
               <>
-                {user ? (
-                  <div className="navbar__user-menu">
-                    <span className="navbar__user-name">
-                      Bonjour, {user.firstName || user.username}
-                    </span>
-                    <button
-                      onClick={handleLogout}
-                      className="navbar__auth-link navbar__auth-link--logout"
-                    >
-                      Déconnexion
-                    </button>
-                  </div>
-                ) : (
-                  <>
-                    <Link
-                      href="/login"
-                      className="navbar__auth-link navbar__auth-link--login"
-                    >
-                      Connexion
-                    </Link>
-                    <Link
-                      href="/register"
-                      className="navbar__auth-link navbar__auth-link--register"
-                    >
-                      Inscription
-                    </Link>
-                  </>
-                )}
+                <Link
+                  href="/login"
+                  className="navbar__auth-link navbar__auth-link--login"
+                >
+                  Connexion
+                </Link>
+                <Link
+                  href="/register"
+                  className="navbar__auth-link navbar__auth-link--register"
+                >
+                  Inscription
+                </Link>
               </>
             )}
           </div>

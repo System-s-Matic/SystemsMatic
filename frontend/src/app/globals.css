@@ -183,6 +183,14 @@ body {
   background-color: #fef2f2;
 }
 
+.navbar__loading {
+  display: flex;
+  align-items: center;
+  color: #6b7280;
+  font-size: 0.875rem;
+  font-style: italic;
+}
+
 /* Footer */
 .footer {
   background-color: #1f2937;

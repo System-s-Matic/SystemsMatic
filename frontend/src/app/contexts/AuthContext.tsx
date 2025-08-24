@@ -5,6 +5,7 @@ import React, {
   useContext,
   useState,
   useEffect,
+  useLayoutEffect,
   ReactNode,
 } from "react";
 import { checkAuth, logout } from "lib/api";
@@ -42,11 +43,17 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const checkAuthStatus = async () => {
     try {
       const authUser = await checkAuth();
-      setUser(authUser);
+
+      if (authUser) {
+        setUser(authUser);
+      } else {
+        setUser(null);
+      }
     } catch (error) {
       console.error(
         "Erreur lors de la vérification d'authentification:",
@@ -55,6 +62,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(null);
     } finally {
       setIsLoading(false);
+      setIsInitialized(true);
     }
   };
 
@@ -73,9 +81,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  // Vérifier l'authentification au montage du composant
   useEffect(() => {
     checkAuthStatus();
   }, []);
+
+  // Re-vérifier l'authentification si l'utilisateur n'est pas défini mais que l'initialisation est terminée
+  useEffect(() => {
+    if (isInitialized && !user && !isLoading) {
+      checkAuthStatus();
+    }
+  }, [isInitialized, user, isLoading]);
 
   const value = {
     user,

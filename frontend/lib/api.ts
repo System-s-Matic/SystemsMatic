@@ -1,7 +1,7 @@
 import axios from "axios";
 
 export const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001",
   withCredentials: true, // Inclure les cookies dans les requêtes
 });
 
@@ -20,8 +20,14 @@ export const logout = async () => {
 export const checkAuth = async () => {
   try {
     const response = await api.get("/auth/profile");
-    return response.data;
-  } catch (error) {
+
+    // Vérifier que la réponse contient les données nécessaires
+    if (response.data && response.data.id) {
+      return response.data;
+    }
+    return null;
+  } catch (error: any) {
+    console.error("Erreur lors de la vérification d'authentification:", error);
     return null;
   }
 };

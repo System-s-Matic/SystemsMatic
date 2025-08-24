@@ -35,9 +35,9 @@ export class AuthController {
 
     // Configuration des cookies selon l'environnement
     const cookieOptions: any = {
-      httpOnly: process.env.NODE_ENV === 'production', // Visible en dev pour debug
+      httpOnly: process.env.NODE_ENV === 'production', // Sécurisé en prod, visible en dev
       secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
       maxAge: 24 * 60 * 60 * 1000, // 24 heures
       path: '/',
     };
@@ -62,9 +62,9 @@ export class AuthController {
   async logout(@Res({ passthrough: true }) res: Response) {
     // Configuration des cookies selon l'environnement
     const cookieOptions: any = {
-      httpOnly: process.env.NODE_ENV === 'production', // Visible en dev pour debug
+      httpOnly: process.env.NODE_ENV === 'production', // Sécurisé en prod, visible en dev
       secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
       path: '/',
     };
 
@@ -84,7 +84,9 @@ export class AuthController {
   @ApiBearerAuth()
   @ApiOperation({ summary: "Récupérer le profil de l'utilisateur connecté" })
   @ApiResponse({ status: 200, description: 'Profil utilisateur' })
-  getProfile(@Request() req) {
-    return req.user;
+  async getProfile(@Request() req) {
+    // Récupérer les données complètes de l'utilisateur depuis la base de données
+    const user = await this.authService.getUserProfile(req.user.id);
+    return user;
   }
 }

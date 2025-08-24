@@ -13,7 +13,10 @@ async function bootstrap() {
   // Configuration CORS
   app.enableCors({
     origin: (origin, callback) => {
-      const allowedOrigins = (process.env.CORS_ORIGIN || '').split(',');
+      const allowedOrigins = (
+        process.env.CORS_ORIGIN || 'http://localhost:3000'
+      ).split(',');
+
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
