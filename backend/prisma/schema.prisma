@@ -10,7 +10,8 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  url       = env("DATABASE_URL") // utilisée par l'app au runtime
+  directUrl = env("DIRECT_URL") // utilisée par prisma migrate en prod
 }
 
 model User {
