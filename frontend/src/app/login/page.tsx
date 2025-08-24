@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { api } from "lib/api";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useAuth } from "../contexts/AuthContext";
 
 interface LoginForm {
   email: string;
@@ -15,6 +16,7 @@ export default function LoginPage() {
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const { login } = useAuth();
 
   const loginForm = useForm<LoginForm>();
 
@@ -25,6 +27,11 @@ export default function LoginPage() {
     try {
       const response = await api.post("/auth/login", data);
       setMessage("Connexion réussie!");
+
+      // Mettre à jour le contexte d'authentification
+      if (response.data.user) {
+        login(response.data.user);
+      }
 
       // Rediriger vers la page d'accueil après un court délai
       setTimeout(() => {

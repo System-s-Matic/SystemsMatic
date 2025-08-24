@@ -1,50 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { logout, checkAuth } from "lib/api";
-
-interface User {
-  id: string;
-  email: string;
-  username: string;
-  firstName: string;
-  lastName: string;
-}
+import { useAuth } from "../contexts/AuthContext";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const { user, isLoading, logoutUser } = useAuth();
   const router = useRouter();
 
-  useEffect(() => {
-    const checkUserAuth = async () => {
-      try {
-        // Vérifier uniquement l'authentification côté serveur
-        const authUser = await checkAuth();
-        setUser(authUser);
-      } catch (error) {
-        console.error(
-          "Erreur lors de la vérification d'authentification:",
-          error
-        );
-        setUser(null);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkUserAuth();
-  }, []);
-
   const handleLogout = async () => {
-    const success = await logout();
-    if (success) {
-      setUser(null);
-      router.push("/");
-    }
+    await logoutUser();
+    router.push("/");
   };
 
   return (
