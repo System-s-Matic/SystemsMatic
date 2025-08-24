@@ -34,16 +34,13 @@ export class AuthController {
     const result = await this.authService.login(loginDto);
 
     // Configuration des cookies selon l'environnement
+    const isProduction = process.env.NODE_ENV === 'production';
     const cookieOptions: any = {
-      httpOnly: false, // Temporairement désactivé pour debug
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // 'none' pour domaines différents en prod
+      httpOnly: false, // Laissé à false pour permettre l'accès côté client
+      secure: isProduction, // Seulement HTTPS en production
+      sameSite: isProduction ? 'none' : 'lax', // 'none' nécessaire pour les domaines différents
       maxAge: 24 * 60 * 60 * 1000, // 24 heures
       path: '/',
-      // En production, spécifier le domaine si nécessaire
-      ...(process.env.NODE_ENV === 'production' && {
-        domain: undefined, // Laisser undefined pour permettre les sous-domaines
-      }),
     };
 
     // Log pour debug
@@ -75,9 +72,11 @@ export class AuthController {
       'Set-Cookie': res.getHeaders()['set-cookie'],
     });
 
-    // Retourner seulement les données utilisateur (sans le token)
+    // Retourner les données utilisateur avec le token pour localStorage
     return {
       user: result.user,
+      // En production, inclure le token pour localStorage
+      ...(isProduction && { access_token: result.access_token }),
     };
   }
 
@@ -86,15 +85,13 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Déconnexion réussie' })
   async logout(@Res({ passthrough: true }) res: Response) {
     // Configuration des cookies selon l'environnement
+    const isProduction = process.env.NODE_ENV === 'production';
     const cookieOptions: any = {
-      httpOnly: false, // Temporairement désactivé pour debug
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // 'none' pour domaines différents en prod
+      httpOnly: false, // Laissé à false pour permettre l'accès côté client
+      secure: isProduction, // Seulement HTTPS en production
+      sameSite: isProduction ? 'none' : 'lax', // 'none' nécessaire pour les domaines différents
+      maxAge: 24 * 60 * 60 * 1000, // 24 heures
       path: '/',
-      // En production, spécifier le domaine si nécessaire
-      ...(process.env.NODE_ENV === 'production' && {
-        domain: undefined, // Laisser undefined pour permettre les sous-domaines
-      }),
     };
 
     // Log pour debug

@@ -11,16 +11,24 @@ async function bootstrap() {
   app.use(cookieParser());
 
   // Configuration CORS
+  const allowedOrigins =
+    process.env.NODE_ENV === 'production'
+      ? ['https://systemsmatic.netlify.app']
+      : ['http://localhost:3000'];
+
   app.enableCors({
     origin: (origin, callback) => {
-      const allowedOrigins = (
-        process.env.CORS_ORIGIN || 'http://localhost:3000'
-      ).split(',');
-
       console.log('CORS - Request origin:', origin);
       console.log('CORS - Allowed origins:', allowedOrigins);
+      console.log('CORS - Environment:', process.env.NODE_ENV);
 
-      if (!origin || allowedOrigins.includes(origin)) {
+      // Autoriser les requêtes sans origin (comme Postman, curl, etc.)
+      if (!origin) {
+        console.log('CORS - No origin, allowing');
+        return callback(null, true);
+      }
+
+      if (allowedOrigins.includes(origin)) {
         console.log('CORS - Origin allowed');
         callback(null, true);
       } else {
@@ -28,9 +36,10 @@ async function bootstrap() {
         callback(new Error(`Origin ${origin} not allowed by CORS`), false);
       }
     },
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    allowedHeaders: 'Content-Type, Authorization',
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
     credentials: true,
+    optionsSuccessStatus: 200, // Support pour les navigateurs legacy
   });
 
   // Validation globale

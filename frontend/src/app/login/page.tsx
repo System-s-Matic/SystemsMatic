@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { api } from "lib/api";
+import { login as apiLogin } from "lib/api";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../contexts/AuthContext";
@@ -25,13 +25,11 @@ export default function LoginPage() {
     setMessage("");
 
     try {
-      const response = await api.post("/auth/login", data);
+      const user = await apiLogin(data.email, data.password);
       setMessage("Connexion réussie!");
 
       // Mettre à jour le contexte d'authentification
-      if (response.data.user) {
-        login(response.data.user);
-      }
+      login(user);
 
       // Rediriger vers la page d'accueil après un court délai
       setTimeout(() => {
