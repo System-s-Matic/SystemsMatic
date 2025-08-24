@@ -27,21 +27,42 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Fonction pour stocker le token
+// Fonction pour stocker le token de manière sécurisée
 export const setAuthToken = (token: string) => {
-  localStorage.setItem("access_token", token);
+  // En production, ajouter une vérification de l'environnement
+  if (typeof window !== "undefined") {
+    // Vérifier que le token semble valide (JWT basique)
+    if (token && token.split(".").length === 3) {
+      localStorage.setItem("access_token", token);
+
+      // Optionnel : ajouter un timestamp d'expiration côté client
+      const expiresAt = Date.now() + 24 * 60 * 60 * 1000; // 24h
+      localStorage.setItem("access_token_expires", expiresAt.toString());
+    } else {
+      console.warn("Token invalide, non stocké");
+    }
+  }
 };
 
 // Fonction pour supprimer le token
 export const removeAuthToken = () => {
   localStorage.removeItem("access_token");
+  localStorage.removeItem("access_token_expires");
   // Nettoyer aussi les cookies
   document.cookie =
     "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
 };
 
-// Fonction pour récupérer le token
+// Fonction pour récupérer le token avec vérification d'expiration
 export const getAuthToken = () => {
+  // Vérifier d'abord l'expiration côté client
+  const expiresAt = localStorage.getItem("access_token_expires");
+  if (expiresAt && Date.now() > parseInt(expiresAt)) {
+    console.log("Token expiré côté client, nettoyage...");
+    removeAuthToken();
+    return null;
+  }
+
   // Essayer localStorage d'abord
   const token = localStorage.getItem("access_token");
   if (token) return token;
