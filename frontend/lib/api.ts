@@ -6,51 +6,27 @@ export const api = axios.create({
   withCredentials: true, // Inclure les cookies dans les requêtes
 });
 
-// Intercepteur pour ajouter le token dans les headers si disponible
-api.interceptors.request.use((config) => {
-  // En production, utiliser localStorage comme fallback si cookies httpOnly ne fonctionnent pas
-  if (process.env.NODE_ENV === "production") {
-    const token = localStorage.getItem("access_token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-  }
-  // En développement, les cookies httpOnly sont automatiquement envoyés
-  // Pas besoin d'intercepteur côté client
-  return config;
-});
+// Les cookies httpOnly sont automatiquement envoyés par le navigateur
+// Le backend les lit via la JWT strategy - pas besoin d'intercepteur côté client
+// Intercepteur supprimé pour utiliser uniquement les cookies sécurisés
 
-// Fonction pour stocker le token de manière sécurisée
+// Fonction pour stocker le token - uniquement pour les cas spéciaux
 export const setAuthToken = (token: string) => {
-  // Vérifier que le token semble valide (JWT basique)
-  if (typeof window !== "undefined" && token && token.split(".").length === 3) {
-    // En production, stocker dans localStorage comme fallback pour les cookies httpOnly
-    if (process.env.NODE_ENV === "production") {
-      localStorage.setItem("access_token", token);
-    }
-    // En développement, les cookies httpOnly sont gérés automatiquement par le backend
-  } else {
-    console.warn("Token invalide, non stocké");
-  }
+  // Les cookies httpOnly sont gérés automatiquement par le backend
+  // Cette fonction n'est plus nécessaire dans le flux normal
+  console.log("Token géré automatiquement par les cookies httpOnly");
 };
 
 // Fonction pour supprimer le token
 export const removeAuthToken = () => {
-  // Supprimer de localStorage en production
-  if (process.env.NODE_ENV === "production") {
-    localStorage.removeItem("access_token");
-  }
-  // En développement, les cookies httpOnly sont supprimés par le backend lors du logout
+  // Les cookies httpOnly sont supprimés automatiquement par le backend lors du logout
+  // Cette fonction n'est plus nécessaire
 };
 
 // Fonction pour récupérer le token
 export const getAuthToken = () => {
-  // En production, récupérer depuis localStorage (cookies httpOnly non accessibles)
-  if (process.env.NODE_ENV === "production") {
-    return localStorage.getItem("access_token");
-  }
-  // En développement, on ne peut pas lire les cookies httpOnly côté client
-  // Cette fonction ne sera utilisée que pour des vérifications optionnelles
+  // Les cookies httpOnly ne sont pas accessibles côté client
+  // Cette fonction n'est plus nécessaire - les tokens sont gérés automatiquement
   return null;
 };
 
@@ -71,13 +47,8 @@ export const logout = async () => {
 // Fonction pour vérifier si l'utilisateur est connecté
 export const checkAuth = async () => {
   try {
-    const token = getAuthToken();
-
-    if (!token) {
-      console.log("Aucun token valide trouvé");
-      return null;
-    }
-
+    // Avec les cookies httpOnly, on fait directement la requête
+    // Le cookie sera envoyé automatiquement par le navigateur
     const response = await api.get("/auth/profile");
 
     // Vérifier que la réponse contient les données nécessaires
@@ -88,8 +59,8 @@ export const checkAuth = async () => {
   } catch (error: any) {
     console.error("Erreur lors de la vérification d'authentification:", error);
     if (error.response?.status === 401) {
-      // Token expiré ou invalide, le supprimer
-      removeAuthToken();
+      // Token expiré ou invalide - les cookies sont gérés automatiquement
+      console.log("Utilisateur non connecté ou token expiré");
     }
     return null;
   }
@@ -101,12 +72,8 @@ export const login = async (email: string, password: string) => {
     const response = await api.post("/auth/login", { email, password });
 
     if (response.data?.user) {
-      // Le token est automatiquement défini dans les cookies par le backend
-      // En production, utiliser aussi le token retourné comme fallback
-      if (response.data.access_token) {
-        setAuthToken(response.data.access_token);
-      }
-
+      // Le token est automatiquement défini dans les cookies httpOnly par le backend
+      // Plus besoin de gérer le token côté client
       return response.data.user;
     }
 
