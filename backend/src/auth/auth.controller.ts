@@ -35,46 +35,33 @@ export class AuthController {
 
     // Configuration des cookies selon l'environnement
     const cookieOptions: any = {
-      httpOnly: process.env.NODE_ENV === 'production', // Sécurisé en prod, visible en dev
+      httpOnly: false, // Temporairement désactivé pour debug
       secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'lax', // Utiliser 'lax' en prod pour éviter les problèmes CORS
+      sameSite: 'lax', // Utiliser 'lax' pour éviter les problèmes CORS
       maxAge: 24 * 60 * 60 * 1000, // 24 heures
       path: '/',
     };
 
-    // En production, si les domaines sont différents, utiliser 'none' pour sameSite
-    if (
-      process.env.NODE_ENV === 'production' &&
-      process.env.FRONTEND_DOMAIN &&
-      process.env.BACKEND_DOMAIN
-    ) {
-      const frontendDomain = process.env.FRONTEND_DOMAIN.replace(
-        /^https?:\/\//,
-        '',
-      );
-      const backendDomain = process.env.BACKEND_DOMAIN.replace(
-        /^https?:\/\//,
-        '',
-      );
-
-      if (frontendDomain !== backendDomain) {
-        cookieOptions.sameSite = 'none';
-      }
-    }
-
-    // Ajouter le domaine en production si spécifié
-    if (process.env.NODE_ENV === 'production') {
-      if (process.env.COOKIE_DOMAIN) {
-        cookieOptions.domain = process.env.COOKIE_DOMAIN;
-      }
-      // Si pas de domaine spécifié, essayer de le déduire automatiquement
-      // ou laisser le navigateur gérer automatiquement
-    }
+    // Log pour debug
+    console.log('Login - Cookie options:', {
+      httpOnly: cookieOptions.httpOnly,
+      secure: cookieOptions.secure,
+      sameSite: cookieOptions.sameSite,
+      maxAge: cookieOptions.maxAge,
+      domain: cookieOptions.domain,
+      NODE_ENV: process.env.NODE_ENV,
+    });
 
     // Vérifier que le token n'est pas vide avant de le mettre dans le cookie
     if (!result.access_token) {
       throw new Error('Token de connexion invalide');
     }
+
+    // Log pour debug
+    console.log('Login - Token created:', {
+      tokenLength: result.access_token.length,
+      tokenStart: result.access_token.substring(0, 20) + '...',
+    });
 
     // Définir le token dans un cookie HTTP-only
     res.cookie('access_token', result.access_token, cookieOptions);
@@ -91,40 +78,20 @@ export class AuthController {
   async logout(@Res({ passthrough: true }) res: Response) {
     // Configuration des cookies selon l'environnement
     const cookieOptions: any = {
-      httpOnly: process.env.NODE_ENV === 'production', // Sécurisé en prod, visible en dev
+      httpOnly: false, // Temporairement désactivé pour debug
       secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'lax', // Utiliser 'lax' en prod pour éviter les problèmes CORS
+      sameSite: 'lax', // Utiliser 'lax' pour éviter les problèmes CORS
       path: '/',
     };
 
-    // En production, si les domaines sont différents, utiliser 'none' pour sameSite
-    if (
-      process.env.NODE_ENV === 'production' &&
-      process.env.FRONTEND_DOMAIN &&
-      process.env.BACKEND_DOMAIN
-    ) {
-      const frontendDomain = process.env.FRONTEND_DOMAIN.replace(
-        /^https?:\/\//,
-        '',
-      );
-      const backendDomain = process.env.BACKEND_DOMAIN.replace(
-        /^https?:\/\//,
-        '',
-      );
-
-      if (frontendDomain !== backendDomain) {
-        cookieOptions.sameSite = 'none';
-      }
-    }
-
-    // Ajouter le domaine en production si spécifié
-    if (process.env.NODE_ENV === 'production') {
-      if (process.env.COOKIE_DOMAIN) {
-        cookieOptions.domain = process.env.COOKIE_DOMAIN;
-      }
-      // Si pas de domaine spécifié, essayer de le déduire automatiquement
-      // ou laisser le navigateur gérer automatiquement
-    }
+    // Log pour debug
+    console.log('Logout - Cookie options:', {
+      httpOnly: cookieOptions.httpOnly,
+      secure: cookieOptions.secure,
+      sameSite: cookieOptions.sameSite,
+      domain: cookieOptions.domain,
+      NODE_ENV: process.env.NODE_ENV,
+    });
 
     // Supprimer le cookie
     res.clearCookie('access_token', cookieOptions);
