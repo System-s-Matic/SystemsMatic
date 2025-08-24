@@ -47,6 +47,11 @@ export class AuthController {
       cookieOptions.domain = process.env.COOKIE_DOMAIN;
     }
 
+    // Vérifier que le token n'est pas vide avant de le mettre dans le cookie
+    if (!result.access_token) {
+      throw new Error('Token de connexion invalide');
+    }
+
     // Définir le token dans un cookie HTTP-only
     res.cookie('access_token', result.access_token, cookieOptions);
 
