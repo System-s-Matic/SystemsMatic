@@ -56,7 +56,7 @@ model Appointment {
   status              AppointmentStatus  @default(PENDING)
   scheduledAt         DateTime?          // défini quand confirmé
   durationMinutes     Int                @default(30)   // non-nullable
-  timezone            String             @default("Europe/Paris")
+  timezone            String             @default("America/Guadeloupe")
   location            String?
 
   // Self-service

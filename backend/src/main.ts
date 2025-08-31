@@ -1,15 +1,11 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import * as cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 import * as path from 'path';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-
-  // Middleware pour parser les cookies
-  app.use(cookieParser());
 
   app.use((req, res, next) => {
     if (process.env.MAINTENANCE_MODE === 'true') {
@@ -47,9 +43,9 @@ async function bootstrap() {
       }
     },
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
+    allowedHeaders: ['Content-Type'],
     credentials: true,
-    optionsSuccessStatus: 200, // Support pour les navigateurs legacy
+    optionsSuccessStatus: 200,
   });
 
   // Validation globale
@@ -66,7 +62,15 @@ async function bootstrap() {
     .setTitle("System's Matic API")
     .setDescription("API pour l'application System's Matic")
     .setVersion('1.0')
-    .addBearerAuth()
+    .addApiKey(
+      {
+        type: 'apiKey',
+        name: 'x-admin-key',
+        in: 'header',
+        description: 'Admin API Key',
+      },
+      'admin-api-key',
+    )
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
