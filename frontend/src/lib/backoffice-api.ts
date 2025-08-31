@@ -1,8 +1,7 @@
 import axios from "axios";
 import { AppointmentStatus } from "../types/appointment";
 
-const BACKEND_URL =
-  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3001";
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
 const api = axios.create({
   baseURL: `${BACKEND_URL}/backoffice`,
