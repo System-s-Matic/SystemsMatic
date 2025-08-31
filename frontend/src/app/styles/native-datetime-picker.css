@@ -1,0 +1,125 @@
+/* Styles pour le composant NativeDateTimePicker */
+.native-datetime-picker {
+  width: 100%;
+}
+
+.datetime-inputs {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.date-input-group,
+.time-input-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.date-input-group label,
+.time-input-group label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.25rem;
+}
+
+.date-input,
+.time-select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  background-color: white;
+}
+
+.date-input:focus,
+.time-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.date-input:hover,
+.time-select:hover {
+  border-color: #d1d5db;
+}
+
+.native-datetime-picker.error .date-input,
+.native-datetime-picker.error .time-select {
+  border-color: #ef4444;
+}
+
+.native-datetime-picker.error .date-input:focus,
+.native-datetime-picker.error .time-select:focus {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.selected-datetime {
+  padding: 0.75rem;
+  background-color: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  color: #374151;
+  font-weight: 500;
+  text-align: center;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .datetime-inputs {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .date-input-group,
+  .time-input-group {
+    width: 100%;
+  }
+}
+
+/* Style pour les navigateurs qui supportent les custom date inputs */
+.date-input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  filter: invert(0.5);
+}
+
+.date-input::-webkit-calendar-picker-indicator:hover {
+  filter: invert(0.3);
+}
+
+/* Style pour les dates en dehors de la plage autorisée */
+.date-input:invalid {
+  border-color: #f59e0b;
+  background-color: #fef3c7;
+}
+
+/* Message d'info sur les contraintes */
+.date-constraints-info {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 0.25rem;
+  font-style: italic;
+}
+
+/* Amélioration du style des selects */
+.time-select {
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
+  padding-right: 2.5rem;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+.time-select option {
+  padding: 0.5rem;
+}

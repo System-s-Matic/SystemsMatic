@@ -17,5 +17,6 @@ import { MailModule } from '../mail/mail.module';
     ReminderProcessor,
     ReminderScheduler,
   ],
+  exports: [AppointmentsService],
 })
 export class AppointmentsModule {}

@@ -21,7 +21,12 @@ export interface CreateAppointmentDto {
   reason?: AppointmentReason;
   reasonOther?: string;
   message?: string;
+  requestedAt: string;
   consent: boolean;
+}
+
+export interface ConfirmAppointmentDto {
+  scheduledAt: string;
 }
 
 export interface Appointment {
@@ -30,23 +35,20 @@ export interface Appointment {
   reason?: AppointmentReason;
   reasonOther?: string;
   message?: string;
+  requestedAt: Date;
   status: AppointmentStatus;
   scheduledAt?: Date;
-  durationMinutes: number;
   timezone: string;
-  location?: string;
   confirmationToken: string;
   cancellationToken: string;
   confirmedAt?: Date;
   cancelledAt?: Date;
-  reminderJobId?: string;
-  reminderScheduledAt?: Date;
-  reminderSentAt?: Date;
-  lastEmailAt?: Date;
   createdIp?: string;
-  userAgent?: string;
   createdAt: Date;
   updatedAt: Date;
+  contact: Contact;
+  emailLogs?: EmailLog[];
+  reminders?: Reminder[];
 }
 
 export interface Contact {
@@ -58,4 +60,23 @@ export interface Contact {
   consentAt?: Date;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface EmailLog {
+  id: string;
+  appointmentId?: string;
+  to: string;
+  subject: string;
+  template: string;
+  sentAt: Date;
+  meta?: any;
+}
+
+export interface Reminder {
+  id: string;
+  appointmentId: string;
+  dueAt: Date;
+  sentAt?: Date;
+  providerRef?: string;
+  createdAt: Date;
 }

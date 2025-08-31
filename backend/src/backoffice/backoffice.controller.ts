@@ -1,100 +1,82 @@
 import {
   Controller,
   Get,
+  Post,
   Put,
+  Delete,
   Param,
-  Req,
-  Res,
-  HttpStatus,
-  UseGuards,
+  Body,
+  Query,
+  Headers,
+  BadRequestException,
 } from '@nestjs/common';
-import { Request, Response } from 'express';
-import { HttpService } from '@nestjs/axios';
-import { ConfigService } from '@nestjs/config';
-import { firstValueFrom } from 'rxjs';
-import { AxiosResponse } from 'axios';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiSecurity,
-} from '@nestjs/swagger';
-import { BasicAuthGuard } from '../common/guards/basic-auth.guard';
+import { AppointmentsService } from '../appointments/appointments.service';
+import { AppointmentStatus } from '@prisma/client';
 
-@ApiTags('Backoffice')
 @Controller('backoffice')
-@UseGuards(BasicAuthGuard)
-@ApiSecurity('basic')
 export class BackofficeController {
-  constructor(
-    private readonly httpService: HttpService,
-    private readonly configService: ConfigService,
-  ) {}
+  constructor(private readonly appointmentsService: AppointmentsService) {}
 
-  @Get('appointments/pending')
-  @ApiOperation({
-    summary: 'Récupérer les rendez-vous en attente (backoffice)',
-  })
-  @ApiResponse({ status: 200, description: 'Rendez-vous en attente' })
-  async getPendingAppointments(@Req() req: Request, @Res() res: Response) {
-    try {
-      const adminApiKey = this.configService.get<string>('ADMIN_API_KEY');
-
-      const response: AxiosResponse = await firstValueFrom(
-        this.httpService.get(
-          `${req.protocol}://${req.get('host')}/admin/appointments/pending`,
-          {
-            headers: {
-              'x-admin-key': adminApiKey,
-            },
-          },
-        ),
-      );
-
-      return res.status(response.status).json(response.data);
-    } catch (error) {
-      if (error.response) {
-        return res.status(error.response.status).json(error.response.data);
-      }
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-        message: 'Erreur interne du serveur',
-      });
-    }
+  private addAdminHeaders(): Record<string, string> {
+    return {
+      'x-admin-key': process.env.ADMIN_API_KEY || '',
+    };
   }
 
-  @Put('appointments/:id/confirm')
-  @ApiOperation({ summary: 'Confirmer un rendez-vous (backoffice)' })
-  @ApiResponse({ status: 200, description: 'Rendez-vous confirmé' })
-  @ApiResponse({ status: 404, description: 'Rendez-vous non trouvé' })
-  async confirmAppointment(
+  @Get('appointments')
+  async getAppointments(@Query('status') status?: AppointmentStatus) {
+    return this.appointmentsService.findAllAdmin(status);
+  }
+
+  @Get('appointments/pending')
+  async getPendingAppointments() {
+    return this.appointmentsService.findAllAdmin('PENDING');
+  }
+
+  @Get('appointments/upcoming')
+  async getUpcomingAppointments(@Query('days') days?: string) {
+    const daysNumber = days ? parseInt(days, 10) : 7;
+    return this.appointmentsService.getUpcomingAdmin(daysNumber);
+  }
+
+  @Get('appointments/stats')
+  async getStats() {
+    return this.appointmentsService.getStatsAdmin();
+  }
+
+  @Get('appointments/:id')
+  async getAppointment(@Param('id') id: string) {
+    return this.appointmentsService.findOneAdmin(id);
+  }
+
+  @Put('appointments/:id/status')
+  async updateAppointmentStatus(
     @Param('id') id: string,
-    @Req() req: Request,
-    @Res() res: Response,
+    @Body()
+    data: {
+      status: AppointmentStatus;
+      scheduledAt?: string;
+    },
   ) {
-    try {
-      const adminApiKey = this.configService.get<string>('ADMIN_API_KEY');
+    return this.appointmentsService.updateStatusAdmin(id, data);
+  }
 
-      const response: AxiosResponse = await firstValueFrom(
-        this.httpService.put(
-          `${req.protocol}://${req.get('host')}/admin/appointments/${id}/status`,
-          req.body,
-          {
-            headers: {
-              'x-admin-key': adminApiKey,
-              'Content-Type': 'application/json',
-            },
-          },
-        ),
-      );
+  @Put('appointments/:id/reschedule')
+  async rescheduleAppointment(
+    @Param('id') id: string,
+    @Body() data: { scheduledAt: string },
+  ) {
+    return this.appointmentsService.rescheduleAdmin(id, data);
+  }
 
-      return res.status(response.status).json(response.data);
-    } catch (error) {
-      if (error.response) {
-        return res.status(error.response.status).json(error.response.data);
-      }
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-        message: 'Erreur interne du serveur',
-      });
-    }
+  @Delete('appointments/:id')
+  async deleteAppointment(@Param('id') id: string) {
+    await this.appointmentsService.deleteAdmin(id);
+    return { message: 'Rendez-vous supprimé avec succès' };
+  }
+
+  @Post('appointments/:id/reminder')
+  async sendReminder(@Param('id') id: string) {
+    return this.appointmentsService.sendReminderAdmin(id);
   }
 }

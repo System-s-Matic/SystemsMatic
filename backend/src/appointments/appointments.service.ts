@@ -1,48 +1,22 @@
 import {
   Injectable,
-  NotFoundException,
   BadRequestException,
+  NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateAppointmentDto } from './dto/create-appointments.dto';
-import { ConfirmAppointmentDto } from './dto/confirm-appointments.dto';
-import { AppointmentStatus } from '@prisma/client';
-import { nanoid } from 'nanoid';
 import { MailService } from '../mail/mail.service';
 import { ReminderScheduler } from './queues/reminder.scheduler';
+import { AppointmentStatus, AppointmentReason } from '@prisma/client';
+import { CreateAppointmentDto } from './dto/create-appointments.dto';
+import { ConfirmAppointmentDto } from './dto/confirm-appointments.dto';
+import * as dayjs from 'dayjs';
+import * as utc from 'dayjs/plugin/utc';
+import * as timezone from 'dayjs/plugin/timezone';
 
-function toGuadeloupeTime(date: Date | string): Date {
-  const dateObj = new Date(date);
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
-  if (isNaN(dateObj.getTime())) {
-    throw new Error('Date invalide fournie');
-  }
-
-  const guadeloupeString = dateObj.toLocaleString('fr-FR', {
-    timeZone: 'America/Guadeloupe',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: false,
-  });
-
-  // Créer une nouvelle date à partir de la chaîne formatée
-  const [datePart, timePart] = guadeloupeString.split(' ');
-  const [day, month, year] = datePart.split('/');
-  const [hour, minute, second] = timePart.split(':');
-
-  return new Date(
-    parseInt(year),
-    parseInt(month) - 1, // Les mois commencent à 0
-    parseInt(day),
-    parseInt(hour),
-    parseInt(minute),
-    parseInt(second),
-  );
-}
+const GUADELOUPE_TIMEZONE = 'America/Guadeloupe';
 
 @Injectable()
 export class AppointmentsService {
@@ -53,72 +27,100 @@ export class AppointmentsService {
   ) {}
 
   async create(dto: CreateAppointmentDto) {
+    const {
+      email,
+      firstName,
+      lastName,
+      phone,
+      reason,
+      reasonOther,
+      message,
+      requestedAt,
+      consent,
+    } = dto;
+
+    // Créer ou récupérer le contact
     const contact = await this.prisma.contact.upsert({
-      where: { email: dto.email },
+      where: { email },
       update: {
-        firstName: dto.firstName,
-        lastName: dto.lastName,
-        phone: dto.phone,
-        consentAt: dto.consent ? new Date() : undefined,
+        firstName,
+        lastName,
+        phone,
+        consentAt: consent ? new Date() : undefined,
       },
       create: {
-        firstName: dto.firstName,
-        lastName: dto.lastName,
-        email: dto.email,
-        phone: dto.phone,
-        consentAt: dto.consent ? new Date() : undefined,
+        email,
+        firstName,
+        lastName,
+        phone,
+        consentAt: consent ? new Date() : undefined,
       },
     });
 
-    const appointmentData = {
-      contactId: contact.id,
-      reason: dto.reason,
-      reasonOther: dto.reason === 'AUTRE' ? dto.reasonOther : null,
-      message: dto.message || null,
-      confirmationToken: nanoid(32),
-      cancellationToken: nanoid(32),
-    };
+    // Générer les tokens uniques
+    const confirmationToken = this.generateToken();
+    const cancellationToken = this.generateToken();
 
+    // Créer le rendez-vous - requestedAt est déjà en UTC depuis le frontend
     const appointment = await this.prisma.appointment.create({
-      data: appointmentData,
+      data: {
+        contactId: contact.id,
+        reason,
+        reasonOther,
+        message,
+        requestedAt: new Date(requestedAt),
+        confirmationToken,
+        cancellationToken,
+      },
       include: { contact: true },
     });
 
-    await this.mail.sendAppointmentRequest(contact, appointment);
+    // Envoyer l'email de confirmation de demande
+    await this.mail.sendAppointmentRequest(appointment.contact, appointment);
+
     return appointment;
   }
 
   async confirm(id: string, dto: ConfirmAppointmentDto) {
-    const appt = await this.prisma.appointment.findUnique({
-      where: { id },
-      include: { contact: true },
-    });
-    if (!appt) throw new NotFoundException();
+    const { scheduledAt } = dto;
+    const appointment = await this.findOneAdmin(id);
 
-    // Convertir la date en timezone Guadeloupe
-    const guadeloupeTime = toGuadeloupeTime(dto.scheduledAt);
+    if (appointment.status !== AppointmentStatus.PENDING) {
+      throw new BadRequestException(
+        'Le rendez-vous ne peut pas être confirmé dans son état actuel',
+      );
+    }
 
-    // unique (contactId, scheduledAt) peut lever une erreur — on laisse Postgres/Prisma la remonter si doublon
     const updated = await this.prisma.appointment.update({
       where: { id },
       data: {
         status: AppointmentStatus.CONFIRMED,
-        scheduledAt: guadeloupeTime,
-        timezone: 'America/Guadeloupe',
+        scheduledAt: new Date(scheduledAt),
         confirmedAt: new Date(),
-        reminderScheduledAt: new Date(
-          guadeloupeTime.getTime() - 24 * 3600 * 1000,
-        ),
       },
       include: { contact: true },
     });
 
-    // planifie le rappel et persiste le jobId
-    const jobId = await this.reminder.scheduleReminder(updated);
+    // Créer le rappel dans le modèle Reminder
+    const reminderDueAt = new Date(scheduledAt);
+    reminderDueAt.setHours(reminderDueAt.getHours() - 24); // 24h avant
+
+    const reminder = await this.prisma.reminder.create({
+      data: {
+        appointmentId: updated.id,
+        dueAt: reminderDueAt,
+      },
+    });
+
+    // Planifier le rappel et mettre à jour la référence du provider
+    const jobId = await this.reminder.scheduleReminder({
+      id: updated.id,
+      scheduledAt: updated.scheduledAt,
+    });
     if (jobId) {
-      await this.prisma.appointment.update({
-        where: { id },
-        data: { reminderJobId: jobId },
+      await this.prisma.reminder.update({
+        where: { id: reminder.id },
+        data: { providerRef: jobId },
       });
     }
 
@@ -143,17 +145,30 @@ export class AppointmentsService {
     if (!appt || appt.cancellationToken !== token)
       throw new BadRequestException('Invalid token');
 
-    await this.reminder.cancelReminder(appt.reminderJobId ?? undefined);
+    // Annuler le rappel associé
+    const reminder = await this.prisma.reminder.findUnique({
+      where: { appointmentId: id },
+    });
+
+    if (reminder?.providerRef) {
+      await this.reminder.cancelReminder(reminder.providerRef);
+    }
 
     const updated = await this.prisma.appointment.update({
       where: { id },
       data: {
         status: AppointmentStatus.CANCELLED,
         cancelledAt: new Date(),
-        reminderJobId: null,
       },
       include: { contact: true },
     });
+
+    // Supprimer le rappel
+    if (reminder) {
+      await this.prisma.reminder.delete({
+        where: { id: reminder.id },
+      });
+    }
 
     await this.mail.sendAppointmentCancelled(updated);
     return updated;
@@ -187,7 +202,6 @@ export class AppointmentsService {
     data: {
       status: AppointmentStatus;
       scheduledAt?: string;
-      location?: string;
     },
   ) {
     const appointment = await this.findOneAdmin(id);
@@ -195,20 +209,11 @@ export class AppointmentsService {
     const updateData: any = { status: data.status };
 
     if (data.scheduledAt) {
-      const guadeloupeTime = toGuadeloupeTime(data.scheduledAt);
-      updateData.scheduledAt = guadeloupeTime;
-      updateData.timezone = 'America/Guadeloupe';
+      updateData.scheduledAt = new Date(data.scheduledAt);
 
       if (data.status === AppointmentStatus.CONFIRMED) {
         updateData.confirmedAt = new Date();
-        updateData.reminderScheduledAt = new Date(
-          guadeloupeTime.getTime() - 24 * 3600 * 1000,
-        );
       }
-    }
-
-    if (data.location) {
-      updateData.location = data.location;
     }
 
     const updated = await this.prisma.appointment.update({
@@ -219,50 +224,128 @@ export class AppointmentsService {
 
     // Gérer les rappels selon le statut
     if (data.status === AppointmentStatus.CONFIRMED && data.scheduledAt) {
-      const jobId = await this.reminder.scheduleReminder(updated);
-      if (jobId) {
-        await this.prisma.appointment.update({
-          where: { id },
-          data: { reminderJobId: jobId },
+      // Créer ou mettre à jour le rappel
+      const reminderDueAt = new Date(data.scheduledAt);
+      reminderDueAt.setHours(reminderDueAt.getHours() - 24);
+
+      const existingReminder = await this.prisma.reminder.findUnique({
+        where: { appointmentId: id },
+      });
+
+      if (existingReminder) {
+        // Annuler l'ancien rappel
+        if (existingReminder.providerRef) {
+          await this.reminder.cancelReminder(existingReminder.providerRef);
+        }
+
+        // Mettre à jour le rappel existant
+        const jobId = await this.reminder.scheduleReminder({
+          id: updated.id,
+          scheduledAt: updated.scheduledAt,
         });
+        await this.prisma.reminder.update({
+          where: { id: existingReminder.id },
+          data: {
+            dueAt: reminderDueAt,
+            providerRef: jobId || null,
+          },
+        });
+      } else {
+        // Créer un nouveau rappel
+        const reminder = await this.prisma.reminder.create({
+          data: {
+            appointmentId: updated.id,
+            dueAt: reminderDueAt,
+          },
+        });
+
+        const jobId = await this.reminder.scheduleReminder({
+          id: updated.id,
+          scheduledAt: updated.scheduledAt,
+        });
+        if (jobId) {
+          await this.prisma.reminder.update({
+            where: { id: reminder.id },
+            data: { providerRef: jobId },
+          });
+        }
       }
+
       await this.mail.sendAppointmentConfirmation(updated);
     } else if (data.status === AppointmentStatus.CANCELLED) {
-      await this.reminder.cancelReminder(
-        appointment.reminderJobId ?? undefined,
-      );
+      // Annuler le rappel
+      const reminder = await this.prisma.reminder.findUnique({
+        where: { appointmentId: id },
+      });
+
+      if (reminder?.providerRef) {
+        await this.reminder.cancelReminder(reminder.providerRef);
+      }
+
+      // Supprimer le rappel
+      if (reminder) {
+        await this.prisma.reminder.delete({
+          where: { id: reminder.id },
+        });
+      }
+
       await this.mail.sendAppointmentCancelled(updated);
     }
 
     return updated;
   }
 
-  async rescheduleAdmin(
-    id: string,
-    data: { scheduledAt: string; location?: string },
-  ) {
+  async cancelAppointmentAdmin(id: string) {
+    const appointment = await this.findOneAdmin(id);
+
+    // Annuler le rappel si il existe
+    const reminder = await this.prisma.reminder.findUnique({
+      where: { appointmentId: id },
+    });
+
+    if (reminder?.providerRef) {
+      await this.reminder.cancelReminder(reminder.providerRef);
+    }
+
+    // Supprimer le rappel
+    if (reminder) {
+      await this.prisma.reminder.delete({
+        where: { id: reminder.id },
+      });
+    }
+
+    const updated = await this.prisma.appointment.update({
+      where: { id },
+      data: {
+        status: AppointmentStatus.CANCELLED,
+        cancelledAt: new Date(),
+      },
+      include: { contact: true },
+    });
+
+    // Envoyer l'email d'annulation
+    await this.mail.sendAppointmentCancelled(updated);
+
+    return updated;
+  }
+
+  async proposeRescheduleAdmin(id: string, data: { scheduledAt: string }) {
     const appointment = await this.findOneAdmin(id);
 
     // Annuler l'ancien rappel si il existe
-    if (appointment.reminderJobId) {
-      await this.reminder.cancelReminder(appointment.reminderJobId);
+    const existingReminder = await this.prisma.reminder.findUnique({
+      where: { appointmentId: id },
+    });
+
+    if (existingReminder?.providerRef) {
+      await this.reminder.cancelReminder(existingReminder.providerRef);
     }
 
-    const guadeloupeTime = toGuadeloupeTime(data.scheduledAt);
-
+    // scheduledAt est déjà en UTC depuis le frontend
     const updateData: any = {
-      scheduledAt: guadeloupeTime,
-      timezone: 'America/Guadeloupe',
-      status: AppointmentStatus.CONFIRMED,
-      confirmedAt: new Date(),
-      reminderScheduledAt: new Date(
-        guadeloupeTime.getTime() - 24 * 3600 * 1000,
-      ),
+      scheduledAt: new Date(data.scheduledAt),
+      status: AppointmentStatus.PENDING, // Remettre en attente pour confirmation
     };
-
-    if (data.location) {
-      updateData.location = data.location;
-    }
 
     const updated = await this.prisma.appointment.update({
       where: { id },
@@ -270,13 +353,72 @@ export class AppointmentsService {
       include: { contact: true },
     });
 
-    // Planifier le nouveau rappel
-    const jobId = await this.reminder.scheduleReminder(updated);
-    if (jobId) {
-      await this.prisma.appointment.update({
-        where: { id },
-        data: { reminderJobId: jobId },
+    // Envoyer l'email de proposition de reprogrammation
+    await this.mail.sendAppointmentRescheduleProposal(updated);
+
+    return updated;
+  }
+
+  async rescheduleAdmin(id: string, data: { scheduledAt: string }) {
+    const appointment = await this.findOneAdmin(id);
+
+    // Annuler l'ancien rappel si il existe
+    const existingReminder = await this.prisma.reminder.findUnique({
+      where: { appointmentId: id },
+    });
+
+    if (existingReminder?.providerRef) {
+      await this.reminder.cancelReminder(existingReminder.providerRef);
+    }
+
+    const updateData: any = {
+      scheduledAt: new Date(data.scheduledAt),
+      status: AppointmentStatus.CONFIRMED,
+      confirmedAt: new Date(),
+    };
+
+    const updated = await this.prisma.appointment.update({
+      where: { id },
+      data: updateData,
+      include: { contact: true },
+    });
+
+    // Créer ou mettre à jour le rappel
+    const reminderDueAt = new Date(data.scheduledAt);
+    reminderDueAt.setHours(reminderDueAt.getHours() - 24);
+
+    if (existingReminder) {
+      // Mettre à jour le rappel existant
+      const jobId = await this.reminder.scheduleReminder({
+        id: updated.id,
+        scheduledAt: updated.scheduledAt,
       });
+      await this.prisma.reminder.update({
+        where: { id: existingReminder.id },
+        data: {
+          dueAt: reminderDueAt,
+          providerRef: jobId || null,
+        },
+      });
+    } else {
+      // Créer un nouveau rappel
+      const reminder = await this.prisma.reminder.create({
+        data: {
+          appointmentId: updated.id,
+          dueAt: reminderDueAt,
+        },
+      });
+
+      const jobId = await this.reminder.scheduleReminder({
+        id: updated.id,
+        scheduledAt: updated.scheduledAt,
+      });
+      if (jobId) {
+        await this.prisma.reminder.update({
+          where: { id: reminder.id },
+          data: { providerRef: jobId },
+        });
+      }
     }
 
     await this.mail.sendAppointmentConfirmation(updated);
@@ -287,8 +429,19 @@ export class AppointmentsService {
     const appointment = await this.findOneAdmin(id);
 
     // Annuler le rappel si il existe
-    if (appointment.reminderJobId) {
-      await this.reminder.cancelReminder(appointment.reminderJobId);
+    const reminder = await this.prisma.reminder.findUnique({
+      where: { appointmentId: id },
+    });
+
+    if (reminder?.providerRef) {
+      await this.reminder.cancelReminder(reminder.providerRef);
+    }
+
+    // Supprimer le rappel
+    if (reminder) {
+      await this.prisma.reminder.delete({
+        where: { id: reminder.id },
+      });
     }
 
     await this.prisma.appointment.delete({
@@ -310,10 +463,15 @@ export class AppointmentsService {
 
     await this.mail.sendAppointmentReminder(appointment);
 
-    // Mettre à jour la date du dernier email
-    await this.prisma.appointment.update({
-      where: { id },
-      data: { lastEmailAt: new Date() },
+    // Créer un log d'email
+    await this.prisma.emailLog.create({
+      data: {
+        appointmentId: appointment.id,
+        to: appointment.contact.email,
+        subject: 'Rappel de rendez-vous',
+        template: 'reminder',
+        meta: { sentBy: 'admin' },
+      },
     });
 
     return { message: 'Rappel envoyé avec succès' };
@@ -337,43 +495,24 @@ export class AppointmentsService {
     });
   }
 
-  async getPendingAdmin() {
-    return this.prisma.appointment.findMany({
-      where: { status: AppointmentStatus.PENDING },
-      include: { contact: true },
-      orderBy: { createdAt: 'desc' },
-    });
-  }
-
-  async getStats() {
-    const total = await this.prisma.appointment.count();
-    const pending = await this.prisma.appointment.count({
-      where: { status: AppointmentStatus.PENDING },
-    });
-    const confirmed = await this.prisma.appointment.count({
-      where: { status: AppointmentStatus.CONFIRMED },
-    });
-    const cancelled = await this.prisma.appointment.count({
-      where: { status: AppointmentStatus.CANCELLED },
-    });
-    const completed = await this.prisma.appointment.count({
-      where: { status: AppointmentStatus.COMPLETED },
-    });
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
-    const todayAppointments = await this.prisma.appointment.count({
-      where: {
-        status: AppointmentStatus.CONFIRMED,
-        scheduledAt: {
-          gte: today,
-          lt: tomorrow,
-        },
-      },
-    });
+  async getStatsAdmin() {
+    const [total, pending, confirmed, cancelled, completed] = await Promise.all(
+      [
+        this.prisma.appointment.count(),
+        this.prisma.appointment.count({
+          where: { status: AppointmentStatus.PENDING },
+        }),
+        this.prisma.appointment.count({
+          where: { status: AppointmentStatus.CONFIRMED },
+        }),
+        this.prisma.appointment.count({
+          where: { status: AppointmentStatus.CANCELLED },
+        }),
+        this.prisma.appointment.count({
+          where: { status: AppointmentStatus.COMPLETED },
+        }),
+      ],
+    );
 
     return {
       total,
@@ -381,13 +520,13 @@ export class AppointmentsService {
       confirmed,
       cancelled,
       completed,
-      todayAppointments,
-      statusDistribution: {
-        pending: total > 0 ? (pending / total) * 100 : 0,
-        confirmed: total > 0 ? (confirmed / total) * 100 : 0,
-        cancelled: total > 0 ? (cancelled / total) * 100 : 0,
-        completed: total > 0 ? (completed / total) * 100 : 0,
-      },
     };
+  }
+
+  private generateToken(): string {
+    return (
+      Math.random().toString(36).substring(2, 15) +
+      Math.random().toString(36).substring(2, 15)
+    );
   }
 }

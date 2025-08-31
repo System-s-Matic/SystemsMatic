@@ -4,10 +4,12 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider  = "postgresql"
   url       = env("DATABASE_URL") // utilisée par l'app au runtime
   directUrl = env("DIRECT_URL") // utilisée par prisma migrate en prod
 }
+
+// --- ENUMS ---
 
 enum AppointmentStatus {
   PENDING
@@ -24,81 +26,78 @@ enum AppointmentReason {
   AUTRE
 }
 
+// --- MODELS ---
+
 model Contact {
-  id           String        @id @default(cuid())
-  firstName    String
-  lastName     String
-  email        String        @db.Citext
-  phone        String?
-  consentAt    DateTime?
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  id        String    @id @default(cuid())
+  firstName String
+  lastName  String
+  email     String    @db.Citext
+  phone     String?
+  consentAt DateTime? @db.Timestamptz(6)
+  createdAt DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime  @updatedAt @db.Timestamptz(6)
 
   appointments Appointment[]
 
-  @@unique([email])                
-  @@index([lastName, firstName])    
+  @@unique([email])
+  @@index([lastName, firstName])
 }
 
 model Appointment {
-  id                  String             @id @default(cuid())
-  contactId           String
-  contact             Contact            @relation(fields: [contactId], references: [id])
+  id        String  @id @default(cuid())
+  contactId String
+  contact   Contact @relation(fields: [contactId], references: [id])
 
   // Demande
-
-  reason              AppointmentReason?
-  reasonOther         String?
-  message             String?
+  reason      AppointmentReason?
+  reasonOther String?
+  message     String?
+  requestedAt DateTime           @db.Timestamptz(6)
 
   // Planif
+  status      AppointmentStatus @default(PENDING)
+  scheduledAt DateTime?         @db.Timestamptz(6)
 
-  status              AppointmentStatus  @default(PENDING)
-  scheduledAt         DateTime?          // défini quand confirmé
-  durationMinutes     Int                @default(30)   // non-nullable
-  timezone            String             @default("America/Guadeloupe")
-  location            String?
-
-  // Self-service
-
-  confirmationToken   String             @unique
-  cancellationToken   String             @unique
-
-  confirmedAt         DateTime?
-  cancelledAt         DateTime?
-
-  // Rappels & emails
-
-  reminderJobId       String?
-  reminderScheduledAt DateTime?
-  reminderSentAt      DateTime?
-  lastEmailAt         DateTime?
+  // Self-service (tokens opaques envoyés via header)
+  confirmationToken String    @unique
+  cancellationToken String    @unique
+  confirmedAt       DateTime? @db.Timestamptz(6)
+  cancelledAt       DateTime? @db.Timestamptz(6)
 
   // Traces
-
-  createdIp           String?
-  userAgent           String?
-  createdAt           DateTime           @default(now())
-  updatedAt           DateTime           @updatedAt
+  createdIp String?
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
 
   // Relations
-  emailLogs           EmailLog[]
+  emailLogs EmailLog[]
+  reminders Reminder[]
 
+  // Empêcher deux RDV planifiés au même instant pour un même contact
+  @@unique([contactId, scheduledAt])
   @@index([contactId])
   @@index([status, scheduledAt])
   @@index([scheduledAt])
-
-  // empêcher deux RDV au même instant pour un même contact
-  @@unique([contactId, scheduledAt])
 }
 
 model EmailLog {
-  id            String        @id @default(cuid())
+  id            String       @id @default(cuid())
   appointmentId String?
-  appointment   Appointment?  @relation(fields: [appointmentId], references: [id])
-  to            String
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id])
+  to            String       @db.Citext
   subject       String
   template      String
-  sentAt        DateTime      @default(now())
+  sentAt        DateTime     @default(now()) @db.Timestamptz(6)
   meta          Json?
+}
+
+model Reminder {
+  id            String      @id @default(cuid())
+  appointmentId String      @unique
+  appointment   Appointment @relation(fields: [appointmentId], references: [id])
+  dueAt         DateTime    @db.Timestamptz(6)
+  sentAt        DateTime?   @db.Timestamptz(6)
+  providerRef   String?
+  createdAt     DateTime    @default(now()) @db.Timestamptz(6)
 }

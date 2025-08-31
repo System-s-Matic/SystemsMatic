@@ -1,8 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
+import NativeDateTimePicker from "./NativeDateTimePicker";
 import { CreateAppointmentDto, AppointmentReason } from "../types/appointment";
+import {
+  getCurrentGuadeloupeTime,
+  getMinimumBookingDate,
+  convertToUTC,
+} from "../lib/date-utils";
+import "../app/styles/appointment-form.css";
+import "../app/styles/native-datetime-picker.css";
 
 interface AppointmentFormProps {
   onSubmit: (data: CreateAppointmentDto) => Promise<void>;
@@ -11,6 +19,7 @@ interface AppointmentFormProps {
 export default function AppointmentForm({ onSubmit }: AppointmentFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showOtherReason, setShowOtherReason] = useState(false);
+  const [selectedDateTime, setSelectedDateTime] = useState<Date | null>(null);
 
   const {
     register,
@@ -18,6 +27,7 @@ export default function AppointmentForm({ onSubmit }: AppointmentFormProps) {
     formState: { errors },
     watch,
     reset,
+    setValue,
   } = useForm<CreateAppointmentDto>({
     defaultValues: {
       firstName: "",
@@ -27,11 +37,24 @@ export default function AppointmentForm({ onSubmit }: AppointmentFormProps) {
       reason: undefined,
       reasonOther: "",
       message: "",
+      requestedAt: "",
       consent: false,
     },
   });
 
   const selectedReason = watch("reason");
+
+  // Mémoriser le gestionnaire de changement de date
+  const handleDateChange = useCallback((date: Date | null) => {
+    setSelectedDateTime(date);
+  }, []);
+
+  // Mettre à jour le champ requestedAt quand la date/heure change
+  useEffect(() => {
+    if (selectedDateTime) {
+      setValue("requestedAt", selectedDateTime.toISOString());
+    }
+  }, [selectedDateTime, setValue]);
 
   const onSubmitForm = async (data: CreateAppointmentDto) => {
     setIsSubmitting(true);
@@ -41,10 +64,12 @@ export default function AppointmentForm({ onSubmit }: AppointmentFormProps) {
         reasonOther: data.reason === "AUTRE" ? data.reasonOther : undefined,
         phone: data.phone || undefined,
         message: data.message || undefined,
+        requestedAt: convertToUTC(data.requestedAt),
       };
 
       await onSubmit(cleanedData);
       reset();
+      setSelectedDateTime(null);
     } catch (error) {
       console.error("Erreur lors de la soumission:", error);
     } finally {
@@ -120,6 +145,28 @@ export default function AppointmentForm({ onSubmit }: AppointmentFormProps) {
           className="form-input"
           placeholder="0690 12 34 56"
         />
+      </div>
+
+      {/* Sélection de date et heure native */}
+      <div className="form-group">
+        <label className="form-label required">Date et heure souhaitées</label>
+
+        <NativeDateTimePicker
+          value={selectedDateTime}
+          onChange={handleDateChange}
+          className={errors.requestedAt ? "error" : ""}
+          error={!!errors.requestedAt}
+        />
+
+        {errors.requestedAt && (
+          <p className="form-error">{errors.requestedAt.message}</p>
+        )}
+        <p className="form-help">
+          Choisissez votre créneau préféré (à partir du lendemain et dans un
+          délai maximum d'1 mois). Créneaux disponibles : 8h-12h et 14h-17h
+          (toutes les 30 minutes). Nous vous confirmerons la disponibilité et
+          vous proposerons un horaire définitif.
+        </p>
       </div>
 
       {/* Motif du rendez-vous */}

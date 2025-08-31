@@ -39,7 +39,7 @@ export class AdminAppointmentsController {
   @ApiOperation({ summary: 'Récupérer les statistiques des rendez-vous' })
   @ApiResponse({ status: 200, description: 'Statistiques des rendez-vous' })
   async getStats() {
-    return this.appointmentsService.getStats();
+    return this.appointmentsService.getStatsAdmin();
   }
 
   @Get('upcoming')
@@ -53,7 +53,7 @@ export class AdminAppointmentsController {
   @ApiOperation({ summary: 'Récupérer les rendez-vous en attente' })
   @ApiResponse({ status: 200, description: 'Rendez-vous en attente' })
   async getPending() {
-    return this.appointmentsService.getPendingAdmin();
+    return this.appointmentsService.findAllAdmin('PENDING');
   }
 
   @Get(':id')
@@ -99,5 +99,24 @@ export class AdminAppointmentsController {
   @ApiResponse({ status: 404, description: 'Rendez-vous non trouvé' })
   async sendReminder(@Param('id') id: string) {
     return this.appointmentsService.sendReminderAdmin(id);
+  }
+
+  @Put(':id/cancel')
+  @ApiOperation({ summary: 'Annuler un rendez-vous (admin)' })
+  @ApiResponse({ status: 200, description: 'Rendez-vous annulé' })
+  @ApiResponse({ status: 404, description: 'Rendez-vous non trouvé' })
+  async cancelAppointment(@Param('id') id: string) {
+    return this.appointmentsService.cancelAppointmentAdmin(id);
+  }
+
+  @Put(':id/propose-reschedule')
+  @ApiOperation({ summary: 'Proposer une reprogrammation de rendez-vous' })
+  @ApiResponse({ status: 200, description: 'Proposition envoyée' })
+  @ApiResponse({ status: 404, description: 'Rendez-vous non trouvé' })
+  async proposeReschedule(
+    @Param('id') id: string,
+    @Body() data: AdminRescheduleDto,
+  ) {
+    return this.appointmentsService.proposeRescheduleAdmin(id, data);
   }
 }

@@ -1,59 +1,83 @@
 import { Injectable, Logger } from '@nestjs/common';
-import nodemailer, { Transporter } from 'nodemailer';
+import { Resend } from 'resend';
 import { Appointment, Contact } from '@prisma/client';
+import * as dayjs from 'dayjs';
+import * as utc from 'dayjs/plugin/utc';
+import * as timezone from 'dayjs/plugin/timezone';
+import 'dayjs/locale/fr';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+dayjs.locale('fr');
 
 type ApptWithContact = Appointment & { contact?: Contact };
 
 @Injectable()
 export class MailService {
   private readonly logger = new Logger(MailService.name);
-  private transporter?: Transporter;
+  private resend?: Resend;
 
   constructor() {
-    // Option 1: SMTP via variables d'env
-    const host = process.env.SMTP_HOST;
-    const port = process.env.SMTP_PORT
-      ? Number(process.env.SMTP_PORT)
-      : undefined;
-    const user = process.env.SMTP_USER;
-    const pass = process.env.SMTP_PASS;
+    const apiKey = process.env.RESEND_API_KEY;
 
-    if (host && port && user && pass) {
-      this.transporter = nodemailer.createTransport({
-        host,
-        port,
-        auth: { user, pass },
-        secure: port === 465,
-      });
+    if (apiKey) {
+      this.resend = new Resend(apiKey);
     } else {
-      // Option 2: mode "console" (no-op) — compile sans erreur
       this.logger.warn(
-        'Aucun SMTP configuré — les emails seront loggés en console.',
+        'Aucune clé API Resend configurée — les emails seront loggés en console.',
       );
     }
   }
 
   private async send(to: string, subject: string, html: string) {
-    if (this.transporter) {
-      await this.transporter.sendMail({
-        from: process.env.MAIL_FROM ?? 'noreply@example.com',
-        to,
-        subject,
-        html,
-      });
+    if (this.resend) {
+      try {
+        await this.resend.emails.send({
+          from: process.env.MAIL_FROM ?? 'noreply@example.com',
+          to,
+          subject,
+          html,
+        });
+        this.logger.log(`Email envoyé avec succès à ${to}`);
+      } catch (error) {
+        this.logger.error(`Erreur lors de l'envoi d'email à ${to}:`, error);
+        throw error;
+      }
     } else {
       this.logger.log(`[MAIL] to=${to} | subject=${subject}\n${html}`);
     }
   }
 
+  private formatDate(
+    date: Date | string | null | undefined,
+    tz: string,
+  ): string {
+    if (!date) return '—';
+    return dayjs(date).tz(tz).format('dddd DD MMMM YYYY à HH:mm');
+  }
+
+  private displayDate(appt: Appointment): string {
+    const tz = 'America/Guadeloupe'; // Force toujours Guadeloupe
+    const date = appt.scheduledAt ?? appt.requestedAt;
+    if (!date) return '—';
+
+    // Convertir depuis UTC vers l'heure locale de Guadeloupe
+    return dayjs.utc(date).tz(tz).format('dddd DD MMMM YYYY à HH:mm');
+  }
+
   async sendAppointmentRequest(contact: Contact, appt: Appointment) {
     const to = contact.email;
     const subject = 'Nous avons bien reçu votre demande de rendez-vous';
+    const requestedDate = this.formatDate(
+      appt.requestedAt,
+      'America/Guadeloupe',
+    );
     const html = `
       <p>Bonjour ${contact.firstName},</p>
       <p>Votre demande a été enregistrée. Nous reviendrons vers vous pour confirmer la date/heure.</p>
-      <p>Motif: ${appt.reason ?? '—'}<br/>Message: ${appt.message ?? '—'}</p>
-      <p>En cas d’annulation: <a href="${process.env.PUBLIC_URL}/appointments/${appt.id}/cancel?token=${appt.cancellationToken}">cliquez ici</a></p>
+      <p><strong>Date souhaitée :</strong> ${requestedDate}</p>
+      <p><strong>Motif :</strong> ${appt.reason ?? '—'}<br/>${appt.message ? `Message : ${appt.message}` : ''}</p>
+      <p>Pour annuler : <a href="${process.env.PUBLIC_URL}/appointments/${appt.id}/cancel?token=${appt.cancellationToken}">cliquez ici</a></p>
     `;
     await this.send(to, subject, html);
   }
@@ -61,16 +85,13 @@ export class MailService {
   async sendAppointmentConfirmation(appt: ApptWithContact) {
     if (!appt.contact) return;
     const to = appt.contact.email;
-    const date = appt.scheduledAt
-      ? new Date(appt.scheduledAt).toLocaleString('fr-FR')
-      : '—';
+    const date = this.displayDate(appt);
     const subject = 'Confirmation de votre rendez-vous';
     const html = `
       <p>Bonjour ${appt.contact.firstName},</p>
       <p>Votre rendez-vous est confirmé le <b>${date}</b>.</p>
-      <p>Lieu: ${appt.location ?? '—'}</p>
-      <p>Pour confirmer par lien: <a href="${process.env.PUBLIC_URL}/appointments/${appt.id}/confirm?token=${appt.confirmationToken}">Confirmer</a></p>
-      <p>Pour annuler: <a href="${process.env.PUBLIC_URL}/appointments/${appt.id}/cancel?token=${appt.cancellationToken}">Annuler</a></p>
+      <p>Confirmer via lien : <a href="${process.env.PUBLIC_URL}/appointments/${appt.id}/confirm?token=${appt.confirmationToken}">Confirmer</a></p>
+      <p>Annuler : <a href="${process.env.PUBLIC_URL}/appointments/${appt.id}/cancel?token=${appt.cancellationToken}">Annuler</a></p>
     `;
     await this.send(to, subject, html);
   }
@@ -89,13 +110,26 @@ export class MailService {
   async sendAppointmentReminder(appt: ApptWithContact) {
     if (!appt.contact) return;
     const to = appt.contact.email;
-    const date = appt.scheduledAt
-      ? new Date(appt.scheduledAt).toLocaleString('fr-FR')
-      : '—';
-    const subject = 'Rappel : votre rendez-vous est demain';
+    const date = this.displayDate(appt);
+    const subject = 'Rappel : votre rendez-vous approche';
     const html = `
       <p>Bonjour ${appt.contact.firstName},</p>
       <p>Petit rappel : votre rendez-vous est prévu le <b>${date}</b>.</p>
+    `;
+    await this.send(to, subject, html);
+  }
+
+  async sendAppointmentRescheduleProposal(appt: ApptWithContact) {
+    if (!appt.contact) return;
+    const to = appt.contact.email;
+    const date = this.displayDate(appt);
+    const subject = 'Proposition de reprogrammation de votre rendez-vous';
+    const html = `
+      <p>Bonjour ${appt.contact.firstName},</p>
+      <p>Nous vous proposons de reprogrammer votre rendez-vous au <b>${date}</b>.</p>
+      <p>Pour confirmer cette nouvelle date : <a href="${process.env.PUBLIC_URL}/appointments/${appt.id}/confirm?token=${appt.confirmationToken}">Confirmer</a></p>
+      <p>Pour refuser et annuler : <a href="${process.env.PUBLIC_URL}/appointments/${appt.id}/cancel?token=${appt.cancellationToken}">Annuler</a></p>
+      <p>Si vous refusez, vous devrez prendre un nouveau rendez-vous manuellement.</p>
     `;
     await this.send(to, subject, html);
   }

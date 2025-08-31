@@ -1,22 +1,28 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-export function middleware(req: NextRequest) {
-  const maintenance = process.env.NEXT_PUBLIC_MAINTENANCE_MODE === "true";
-  if (!maintenance) return NextResponse.next();
+export function middleware(request: NextRequest) {
+  // Protection supplémentaire pour les pages d'administration
+  if (request.nextUrl.pathname.startsWith("/admin-secret")) {
+    // Ajouter des headers de sécurité pour empêcher l'indexation
+    const response = NextResponse.next();
 
-  const url = req.nextUrl.clone();
+    response.headers.set(
+      "X-Robots-Tag",
+      "noindex, nofollow, noarchive, nosnippet, noimageindex"
+    );
+    response.headers.set(
+      "Cache-Control",
+      "no-cache, no-store, must-revalidate"
+    );
+    response.headers.set("Pragma", "no-cache");
+    response.headers.set("Expires", "0");
 
-  // Autorise UNIQUEMENT la page /maintenance
-  if (url.pathname === "/maintenance") {
-    return NextResponse.next();
+    return response;
   }
 
-  // Tout le reste est réécrit vers /maintenance
-  url.pathname = "/maintenance";
-  return NextResponse.rewrite(url);
+  return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/:path*"], // capture tout, même les assets
+  matcher: ["/admin-secret/:path*"],
 };

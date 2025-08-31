@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+
+# Bloquer l'accès aux pages d'administration
+Disallow: /admin-secret
+Disallow: /admin-secret/
+Disallow: /admin*
+Disallow: /_admin*
+
+# Bloquer l'accès aux API internes
+Disallow: /api/backoffice
+Disallow: /api/admin
+
+# Sitemap (optionnel)
+Sitemap: https://votre-domaine.com/sitemap.xml
