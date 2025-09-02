@@ -1,34 +1,19 @@
 import { CookieOptions } from 'express';
 
-export const getCookieOptions = (isProduction: boolean): CookieOptions => {
-  // Forcer le mode production si on est sur Render ou si FORCE_PRODUCTION est défini
-  const forceProduction =
-    isProduction ||
-    process.env.FORCE_PRODUCTION === 'true' ||
-    process.env.CORS_ORIGIN?.includes('netlify');
-
-  console.log('Mode production forcé:', forceProduction);
-
+export const getCookieOptions = (): CookieOptions => {
   return {
     httpOnly: true,
-    secure: forceProduction,
+    secure: true,
     sameSite: 'none',
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 jours
     path: '/',
-    domain: forceProduction ? '.systemsmatic.com' : undefined,
   };
 };
 
-export const getClearCookieOptions = (isProduction: boolean): CookieOptions => {
-  const forceProduction =
-    isProduction ||
-    process.env.FORCE_PRODUCTION === 'true' ||
-    process.env.CORS_ORIGIN?.includes('netlify');
-
+export const getClearCookieOptions = (): CookieOptions => {
   return {
     path: '/',
-    secure: forceProduction,
+    secure: true,
     sameSite: 'none',
-    domain: forceProduction ? '.systemsmatic.com' : undefined,
   };
 };

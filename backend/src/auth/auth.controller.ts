@@ -26,21 +26,12 @@ export class AuthController {
   @Post('login')
   async login(@Body() loginDto: LoginDto, @Res() res: Response) {
     const result = await this.authService.login(loginDto);
-    const isProduction = process.env.NODE_ENV === 'production';
 
     // Définir le cookie HTTP-only pour le token
-    res.cookie(
-      'auth_token',
-      result.access_token,
-      getCookieOptions(isProduction),
-    );
+    res.cookie('auth_token', result.access_token, getCookieOptions());
 
     // Définir le cookie HTTP-only pour les données utilisateur
-    res.cookie(
-      'auth_user',
-      JSON.stringify(result.user),
-      getCookieOptions(isProduction),
-    );
+    res.cookie('auth_user', JSON.stringify(result.user), getCookieOptions());
 
     // Retourner la réponse sans le token (il est maintenant dans le cookie)
     return res.status(HttpStatus.OK).json({
@@ -52,21 +43,12 @@ export class AuthController {
   @Post('register')
   async register(@Body() registerDto: RegisterDto, @Res() res: Response) {
     const result = await this.authService.register(registerDto);
-    const isProduction = process.env.NODE_ENV === 'production';
 
     // Définir le cookie HTTP-only pour le token
-    res.cookie(
-      'auth_token',
-      result.access_token,
-      getCookieOptions(isProduction),
-    );
+    res.cookie('auth_token', result.access_token, getCookieOptions());
 
     // Définir le cookie HTTP-only pour les données utilisateur
-    res.cookie(
-      'auth_user',
-      JSON.stringify(result.user),
-      getCookieOptions(isProduction),
-    );
+    res.cookie('auth_user', JSON.stringify(result.user), getCookieOptions());
 
     // Retourner la réponse sans le token (il est maintenant dans le cookie)
     return res.status(HttpStatus.CREATED).json({
@@ -77,11 +59,9 @@ export class AuthController {
 
   @Post('logout')
   async logout(@Res() res: Response) {
-    const isProduction = process.env.NODE_ENV === 'production';
-
     // Supprimer les cookies d'authentification
-    res.clearCookie('auth_token', getClearCookieOptions(isProduction));
-    res.clearCookie('auth_user', getClearCookieOptions(isProduction));
+    res.clearCookie('auth_token', getClearCookieOptions());
+    res.clearCookie('auth_user', getClearCookieOptions());
 
     return res.status(HttpStatus.OK).json({
       message: 'Déconnexion réussie',
@@ -98,21 +78,12 @@ export class AuthController {
   @Post('login/local')
   async loginLocal(@Request() req, @Res() res: Response) {
     const result = await this.authService.login(req.user);
-    const isProduction = process.env.NODE_ENV === 'production';
 
     // Définir le cookie HTTP-only pour le token
-    res.cookie(
-      'auth_token',
-      result.access_token,
-      getCookieOptions(isProduction),
-    );
+    res.cookie('auth_token', result.access_token, getCookieOptions());
 
     // Définir le cookie HTTP-only pour les données utilisateur
-    res.cookie(
-      'auth_user',
-      JSON.stringify(result.user),
-      getCookieOptions(isProduction),
-    );
+    res.cookie('auth_user', JSON.stringify(result.user), getCookieOptions());
 
     return res.status(HttpStatus.OK).json({
       message: 'Connexion locale réussie',
@@ -128,6 +99,18 @@ export class AuthController {
       userAgent: req.get('User-Agent'),
       origin: req.get('Origin'),
       referer: req.get('Referer'),
+    });
+  }
+
+  @Get('test-cookies')
+  async testCookies(@Res() res: Response) {
+    return res.status(HttpStatus.OK).json({
+      message: 'Cookie de test défini',
+      cookieOptions: getCookieOptions(),
+      environment: {
+        NODE_ENV: process.env.NODE_ENV,
+        CORS_ORIGIN: process.env.CORS_ORIGIN,
+      },
     });
   }
 }
