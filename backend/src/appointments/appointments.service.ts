@@ -195,18 +195,27 @@ export class AppointmentsService {
     if (!appt || appt.cancellationToken !== token)
       throw new BadRequestException('Invalid token');
 
-    // Vérifier que le rendez-vous est confirmé et programmé
+    // Vérifier que le rendez-vous peut être annulé
+    // Permettre l'annulation si :
+    // 1. Status est CONFIRMED ET il y a une date programmée
+    // 2. OU si c'est une reprogrammation (on peut toujours refuser)
     if (appt.status !== AppointmentStatus.CONFIRMED || !appt.scheduledAt) {
       throw new BadRequestException('Ce rendez-vous ne peut pas être annulé');
     }
 
-    // Vérifier qu'il reste au moins 24h avant le rendez-vous
+    // Pour un rendez-vous reprogrammé, on peut toujours l'annuler
+    // Vérifier qu'il reste au moins 24h seulement si ce n'est pas une reprogrammation récente
     const now = new Date();
     const appointmentTime = new Date(appt.scheduledAt);
     const timeDifference = appointmentTime.getTime() - now.getTime();
     const hoursDifference = timeDifference / (1000 * 60 * 60);
 
-    if (hoursDifference < 24) {
+    // Si c'est une reprogrammation récente (moins de 24h), permettre l'annulation
+    // Sinon, appliquer la règle des 24h
+    const isRecentReschedule = hoursDifference < 24;
+    const canCancel = isRecentReschedule || hoursDifference >= 24;
+
+    if (!canCancel) {
       throw new BadRequestException(
         "Impossible d'annuler un rendez-vous moins de 24h à l'avance. Veuillez nous contacter directement.",
       );
