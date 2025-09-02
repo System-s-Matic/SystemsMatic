@@ -8,6 +8,7 @@ import { formatGuadeloupeDateTime } from "../../lib/date-utils";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+import { showSuccess, showError } from "../../lib/toast";
 import "../../app/styles/admin-backoffice.css";
 
 dayjs.extend(utc);
@@ -131,7 +132,7 @@ export default function AdminPage() {
   const sendReminder = async (id: string) => {
     try {
       await backofficeApi.sendReminder(id);
-      alert("Rappel envoyé avec succès");
+      showSuccess("Rappel envoyé avec succès");
     } catch (error) {
       console.error("Erreur lors de l'envoi du rappel:", error);
     }
@@ -460,7 +461,7 @@ export default function AdminPage() {
                                     appointment.id,
                                     selectedDateTime
                                   );
-                                  alert(
+                                  showSuccess(
                                     "Proposition de reprogrammation envoyée"
                                   );
                                   setShowDatePicker(null);
@@ -471,7 +472,9 @@ export default function AdminPage() {
                                     "Erreur lors de la reprogrammation:",
                                     error
                                   );
-                                  alert("Erreur lors de la reprogrammation");
+                                  showError(
+                                    "Erreur lors de la reprogrammation"
+                                  );
                                 }
                               }
                             }}

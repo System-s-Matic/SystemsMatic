@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { appointmentService } from "@/lib/api";
+import { showSuccess, showError } from "@/lib/toast";
 import "../../../styles/appointment-actions.css";
 
 export default function CancelAppointmentPage() {
@@ -28,12 +29,14 @@ export default function CancelAppointmentPage() {
         const result = await appointmentService.cancelByToken(id, token);
         setStatus("success");
         setMessage("Votre rendez-vous a été annulé avec succès.");
+        showSuccess("Rendez-vous annulé avec succès");
       } catch (error: any) {
         setStatus("error");
-        setMessage(
+        const errorMessage =
           error.response?.data?.message ||
-            "Erreur lors de l'annulation du rendez-vous"
-        );
+          "Erreur lors de l'annulation du rendez-vous";
+        setMessage(errorMessage);
+        showError(errorMessage);
       }
     };
 
