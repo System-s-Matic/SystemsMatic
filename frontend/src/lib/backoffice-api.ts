@@ -49,6 +49,15 @@ export const backofficeApi = {
     return response.data;
   },
 
+  // Proposer une reprogrammation
+  proposeReschedule: async (id: string, newScheduledAt: string) => {
+    const response = await backofficeClient.post(
+      `/appointments/${id}/reschedule`,
+      { newScheduledAt }
+    );
+    return response.data;
+  },
+
   // Récupérer les statistiques
   getStats: async () => {
     const response = await backofficeClient.get("/stats");

@@ -77,6 +77,17 @@ export class BackofficeController {
     return this.appointmentsService.sendReminderAdmin(id);
   }
 
+  @Post('appointments/:id/reschedule')
+  async proposeReschedule(
+    @Param('id') id: string,
+    @Body() data: { newScheduledAt: string },
+  ) {
+    return this.appointmentsService.proposeRescheduleAdmin(
+      id,
+      data.newScheduledAt,
+    );
+  }
+
   @Get('profile')
   async getProfile(@Request() req) {
     return {

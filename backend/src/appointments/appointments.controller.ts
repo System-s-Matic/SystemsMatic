@@ -36,4 +36,9 @@ export class AppointmentsController {
   cancel(@Param('id') id: string, @Query('token') token: string) {
     return this.appointmentsService.cancel(id, token);
   }
+
+  @Get(':id/can-cancel')
+  canCancel(@Param('id') id: string, @Query('token') token: string) {
+    return this.appointmentsService.canCancelCheck(id, token);
+  }
 }

@@ -90,8 +90,8 @@ export class MailService {
     const html = `
       <p>Bonjour ${appt.contact.firstName},</p>
       <p>Votre rendez-vous est confirmé le <b>${date}</b>.</p>
-      <p>Confirmer via lien : <a href="${process.env.PUBLIC_URL}/appointments/${appt.id}/confirm?token=${appt.confirmationToken}">Confirmer</a></p>
       <p>Annuler : <a href="${process.env.PUBLIC_URL}/appointments/${appt.id}/cancel?token=${appt.cancellationToken}">Annuler</a></p>
+      <p><strong>Important :</strong> Vous ne pouvez annuler ce rendez-vous que jusqu'à 24h avant l'heure prévue. Passé ce délai, veuillez nous contacter directement.</p>
     `;
     await this.send(to, subject, html);
   }

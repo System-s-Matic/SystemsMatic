@@ -137,6 +137,56 @@ export class AppointmentsService {
     return this.confirm(id, { scheduledAt: appt.scheduledAt.toISOString() });
   }
 
+  /**
+   * Vérifie si un rendez-vous peut être annulé (au moins 24h à l'avance)
+   */
+  canCancelAppointment(appt: any): boolean {
+    if (appt.status !== AppointmentStatus.CONFIRMED || !appt.scheduledAt) {
+      return false;
+    }
+
+    const now = new Date();
+    const appointmentTime = new Date(appt.scheduledAt);
+    const timeDifference = appointmentTime.getTime() - now.getTime();
+    const hoursDifference = timeDifference / (1000 * 60 * 60);
+
+    return hoursDifference >= 24;
+  }
+
+  /**
+   * Vérifie si un rendez-vous peut être annulé (avec token)
+   */
+  async canCancelCheck(id: string, token: string) {
+    const appt = await this.prisma.appointment.findUnique({
+      where: { id },
+      include: { contact: true },
+    });
+
+    if (!appt || appt.cancellationToken !== token) {
+      throw new BadRequestException('Token invalide');
+    }
+
+    const canCancel = this.canCancelAppointment(appt);
+    const now = new Date();
+    const appointmentTime = appt.scheduledAt
+      ? new Date(appt.scheduledAt)
+      : null;
+
+    let remainingHours = null;
+    if (appointmentTime) {
+      const timeDifference = appointmentTime.getTime() - now.getTime();
+      remainingHours = Math.max(0, timeDifference / (1000 * 60 * 60));
+    }
+
+    return {
+      canCancel,
+      remainingHours: Math.round(remainingHours * 100) / 100,
+      message: canCancel
+        ? 'Vous pouvez annuler ce rendez-vous'
+        : "Impossible d'annuler ce rendez-vous (moins de 24h à l'avance)",
+    };
+  }
+
   async cancel(id: string, token: string) {
     const appt = await this.prisma.appointment.findUnique({
       where: { id },
@@ -144,6 +194,23 @@ export class AppointmentsService {
     });
     if (!appt || appt.cancellationToken !== token)
       throw new BadRequestException('Invalid token');
+
+    // Vérifier que le rendez-vous est confirmé et programmé
+    if (appt.status !== AppointmentStatus.CONFIRMED || !appt.scheduledAt) {
+      throw new BadRequestException('Ce rendez-vous ne peut pas être annulé');
+    }
+
+    // Vérifier qu'il reste au moins 24h avant le rendez-vous
+    const now = new Date();
+    const appointmentTime = new Date(appt.scheduledAt);
+    const timeDifference = appointmentTime.getTime() - now.getTime();
+    const hoursDifference = timeDifference / (1000 * 60 * 60);
+
+    if (hoursDifference < 24) {
+      throw new BadRequestException(
+        "Impossible d'annuler un rendez-vous moins de 24h à l'avance. Veuillez nous contacter directement.",
+      );
+    }
 
     // Annuler le rappel associé
     const reminder = await this.prisma.reminder.findUnique({
@@ -206,15 +273,38 @@ export class AppointmentsService {
   ) {
     const appointment = await this.findOneAdmin(id);
 
+    console.log('updateStatusAdmin - Input:', {
+      id,
+      status: data.status,
+      scheduledAt: data.scheduledAt,
+      currentStatus: appointment.status,
+      currentScheduledAt: appointment.scheduledAt,
+      requestedAt: appointment.requestedAt,
+    });
+
     const updateData: any = { status: data.status };
 
-    if (data.scheduledAt) {
+    // Si on confirme sans scheduledAt, utiliser la date demandée
+    if (data.status === AppointmentStatus.CONFIRMED && !data.scheduledAt) {
+      console.log(
+        'updateStatusAdmin - Confirming with requestedAt:',
+        appointment.requestedAt,
+      );
+      updateData.scheduledAt = appointment.requestedAt;
+      updateData.confirmedAt = new Date();
+    } else if (data.scheduledAt) {
+      console.log(
+        'updateStatusAdmin - Confirming with provided scheduledAt:',
+        data.scheduledAt,
+      );
       updateData.scheduledAt = new Date(data.scheduledAt);
 
       if (data.status === AppointmentStatus.CONFIRMED) {
         updateData.confirmedAt = new Date();
       }
     }
+
+    console.log('updateStatusAdmin - Final updateData:', updateData);
 
     const updated = await this.prisma.appointment.update({
       where: { id },
@@ -223,9 +313,9 @@ export class AppointmentsService {
     });
 
     // Gérer les rappels selon le statut
-    if (data.status === AppointmentStatus.CONFIRMED && data.scheduledAt) {
+    if (data.status === AppointmentStatus.CONFIRMED && updateData.scheduledAt) {
       // Créer ou mettre à jour le rappel
-      const reminderDueAt = new Date(data.scheduledAt);
+      const reminderDueAt = new Date(updateData.scheduledAt);
       reminderDueAt.setHours(reminderDueAt.getHours() - 24);
 
       const existingReminder = await this.prisma.reminder.findUnique({
@@ -325,36 +415,6 @@ export class AppointmentsService {
 
     // Envoyer l'email d'annulation
     await this.mail.sendAppointmentCancelled(updated);
-
-    return updated;
-  }
-
-  async proposeRescheduleAdmin(id: string, data: { scheduledAt: string }) {
-    const appointment = await this.findOneAdmin(id);
-
-    // Annuler l'ancien rappel si il existe
-    const existingReminder = await this.prisma.reminder.findUnique({
-      where: { appointmentId: id },
-    });
-
-    if (existingReminder?.providerRef) {
-      await this.reminder.cancelReminder(existingReminder.providerRef);
-    }
-
-    // scheduledAt est déjà en UTC depuis le frontend
-    const updateData: any = {
-      scheduledAt: new Date(data.scheduledAt),
-      status: AppointmentStatus.PENDING, // Remettre en attente pour confirmation
-    };
-
-    const updated = await this.prisma.appointment.update({
-      where: { id },
-      data: updateData,
-      include: { contact: true },
-    });
-
-    // Envoyer l'email de proposition de reprogrammation
-    await this.mail.sendAppointmentRescheduleProposal(updated);
 
     return updated;
   }
@@ -475,6 +535,41 @@ export class AppointmentsService {
     });
 
     return { message: 'Rappel envoyé avec succès' };
+  }
+
+  async proposeRescheduleAdmin(id: string, newScheduledAt: string) {
+    const appointment = await this.findOneAdmin(id);
+
+    if (appointment.status !== AppointmentStatus.PENDING) {
+      throw new BadRequestException(
+        'Seuls les rendez-vous en attente peuvent être reprogrammés',
+      );
+    }
+
+    // Mettre à jour la date proposée
+    const updated = await this.prisma.appointment.update({
+      where: { id },
+      data: {
+        scheduledAt: new Date(newScheduledAt),
+      },
+      include: { contact: true },
+    });
+
+    // Envoyer un email de proposition de reprogrammation
+    await this.mail.sendAppointmentRescheduleProposal(updated);
+
+    // Créer un log d'email
+    await this.prisma.emailLog.create({
+      data: {
+        appointmentId: appointment.id,
+        to: appointment.contact.email,
+        subject: 'Proposition de reprogrammation',
+        template: 'reschedule_proposal',
+        meta: { sentBy: 'admin' },
+      },
+    });
+
+    return { message: 'Proposition de reprogrammation envoyée' };
   }
 
   async getUpcomingAdmin(days: number = 7) {

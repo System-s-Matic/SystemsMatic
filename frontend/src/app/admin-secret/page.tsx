@@ -26,6 +26,8 @@ export default function AdminPage() {
     AppointmentStatus.PENDING
   );
   const [stats, setStats] = useState<any>(null);
+  const [showDatePicker, setShowDatePicker] = useState<string | null>(null);
+  const [selectedDateTime, setSelectedDateTime] = useState<string>("");
 
   // Vérifier l'authentification au chargement
   useEffect(() => {
@@ -157,12 +159,7 @@ export default function AdminPage() {
   };
 
   const formatRequestedDate = (date: string | Date) => {
-    // Ajouter 2 heures à la date requestedAt
-    return dayjs
-      .utc(date)
-      .tz("America/Guadeloupe")
-      .add(2, "hours")
-      .format("DD/MM/YYYY HH:mm");
+    return formatGuadeloupeDateTime(date);
   };
 
   const formatCreatedDate = (date: string | Date) => {
@@ -389,6 +386,12 @@ export default function AdminPage() {
                           Confirmer
                         </button>
                         <button
+                          onClick={() => setShowDatePicker(appointment.id)}
+                          className="action-button reschedule"
+                        >
+                          Reprogrammer
+                        </button>
+                        <button
                           onClick={() =>
                             updateAppointmentStatus(
                               appointment.id,
@@ -414,12 +417,15 @@ export default function AdminPage() {
                         Marquer comme terminé
                       </button>
                     )}
-                    <button
-                      onClick={() => sendReminder(appointment.id)}
-                      className="action-button reminder"
-                    >
-                      Envoyer un rappel
-                    </button>
+                    {appointment.status === AppointmentStatus.CONFIRMED &&
+                      appointment.scheduledAt && (
+                        <button
+                          onClick={() => sendReminder(appointment.id)}
+                          className="action-button reminder"
+                        >
+                          Envoyer un rappel
+                        </button>
+                      )}
                     <button
                       onClick={() => deleteAppointment(appointment.id)}
                       className="action-button delete"
@@ -427,6 +433,66 @@ export default function AdminPage() {
                       Supprimer
                     </button>
                   </div>
+
+                  {/* Sélecteur de date/heure pour la reprogrammation */}
+                  {showDatePicker === appointment.id && (
+                    <div className="date-picker-overlay">
+                      <div className="date-picker-modal">
+                        <h4>Proposer une reprogrammation</h4>
+                        <p className="reschedule-info">
+                          Le client recevra un email avec la nouvelle
+                          proposition de date/heure. Il pourra accepter ou
+                          refuser.
+                        </p>
+                        <input
+                          type="datetime-local"
+                          value={selectedDateTime}
+                          onChange={(e) => setSelectedDateTime(e.target.value)}
+                          className="date-time-input"
+                          min={new Date().toISOString().slice(0, 16)}
+                        />
+                        <div className="date-picker-actions">
+                          <button
+                            onClick={async () => {
+                              if (selectedDateTime) {
+                                try {
+                                  await backofficeApi.proposeReschedule(
+                                    appointment.id,
+                                    selectedDateTime
+                                  );
+                                  alert(
+                                    "Proposition de reprogrammation envoyée"
+                                  );
+                                  setShowDatePicker(null);
+                                  setSelectedDateTime("");
+                                  fetchAppointments(); // Recharger la liste
+                                } catch (error) {
+                                  console.error(
+                                    "Erreur lors de la reprogrammation:",
+                                    error
+                                  );
+                                  alert("Erreur lors de la reprogrammation");
+                                }
+                              }
+                            }}
+                            className="action-button confirm"
+                            disabled={!selectedDateTime}
+                          >
+                            Proposer
+                          </button>
+                          <button
+                            onClick={() => {
+                              setShowDatePicker(null);
+                              setSelectedDateTime("");
+                            }}
+                            className="action-button reject"
+                          >
+                            Annuler
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))
             )}
