@@ -78,10 +78,7 @@ export default function AdminPage() {
   const fetchAppointments = async () => {
     try {
       setLoading(true);
-      const data =
-        filter === "ALL"
-          ? await backofficeApi.getAppointments()
-          : await backofficeApi.getAppointments(undefined, filter);
+      const data = await backofficeApi.getAppointments(filter);
 
       setAppointments(data);
     } catch (error) {
