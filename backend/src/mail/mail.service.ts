@@ -56,15 +56,6 @@ export class MailService {
     return dayjs(date).tz(tz).format('dddd DD MMMM YYYY à HH:mm');
   }
 
-  private displayDate(appt: Appointment): string {
-    const tz = 'America/Guadeloupe'; // Force toujours Guadeloupe
-    const date = appt.scheduledAt ?? appt.requestedAt;
-    if (!date) return '—';
-
-    // Convertir depuis UTC vers l'heure locale de Guadeloupe
-    return dayjs.utc(date).tz(tz).format('dddd DD MMMM YYYY à HH:mm');
-  }
-
   async sendAppointmentRequest(contact: Contact, appt: Appointment) {
     const to = contact.email;
     const subject = 'Nous avons bien reçu votre demande de rendez-vous';
@@ -85,7 +76,7 @@ export class MailService {
   async sendAppointmentConfirmation(appt: ApptWithContact) {
     if (!appt.contact) return;
     const to = appt.contact.email;
-    const date = this.displayDate(appt);
+    const date = appt.scheduledAt;
     const subject = 'Confirmation de votre rendez-vous';
     const html = `
       <p>Bonjour ${appt.contact.firstName},</p>
@@ -110,7 +101,7 @@ export class MailService {
   async sendAppointmentReminder(appt: ApptWithContact) {
     if (!appt.contact) return;
     const to = appt.contact.email;
-    const date = this.displayDate(appt);
+    const date = appt.scheduledAt;
     const subject = 'Rappel : votre rendez-vous approche';
     const html = `
       <p>Bonjour ${appt.contact.firstName},</p>
@@ -122,7 +113,7 @@ export class MailService {
   async sendAppointmentRescheduleProposal(appt: ApptWithContact) {
     if (!appt.contact) return;
     const to = appt.contact.email;
-    const date = this.displayDate(appt);
+    const date = appt.scheduledAt;
     const subject = 'Proposition de reprogrammation de votre rendez-vous';
     const html = `
       <p>Bonjour ${appt.contact.firstName},</p>
