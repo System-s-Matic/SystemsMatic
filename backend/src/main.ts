@@ -21,20 +21,34 @@ async function bootstrap() {
   });
 
   // Configuration CORS
-  const allowedOrigins =
-    process.env.NODE_ENV === 'production'
-      ? [process.env.CORS_ORIGIN || 'https://systemsmatic.netlify.app']
-      : ['http://localhost:3000'];
+  const allowedOrigins = [
+    'http://localhost:3000',
+    'https://systemsmatic.netlify.app',
+    'https://systemsmatic.onrender.com',
+  ];
+
+  // Ajouter l'origine personnalisée si configurée
+  if (process.env.CORS_ORIGIN) {
+    allowedOrigins.push(process.env.CORS_ORIGIN);
+  }
+
+  console.log('CORS - Environment:', process.env.NODE_ENV);
+  console.log('CORS - Allowed origins:', allowedOrigins);
+  console.log('CORS - CORS_ORIGIN env:', process.env.CORS_ORIGIN);
 
   app.enableCors({
     origin: (origin, callback) => {
       console.log('CORS - Request origin:', origin);
-      console.log('CORS - Allowed origins:', allowedOrigins);
-      console.log('CORS - Environment:', process.env.NODE_ENV);
 
       // Autoriser les requêtes sans origin (comme Postman, curl, etc.)
       if (!origin) {
         console.log('CORS - No origin, allowing');
+        return callback(null, true);
+      }
+
+      // En production, être plus permissif pour éviter les problèmes CORS
+      if (process.env.NODE_ENV === 'production') {
+        console.log('CORS - Production mode, allowing all origins');
         return callback(null, true);
       }
 
@@ -47,7 +61,7 @@ async function bootstrap() {
       }
     },
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'x-admin-key'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-admin-key', 'Cookie'],
     credentials: true,
     optionsSuccessStatus: 200,
   });
