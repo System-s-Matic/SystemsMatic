@@ -101,3 +101,19 @@ model Reminder {
   providerRef   String?
   createdAt     DateTime    @default(now()) @db.Timestamptz(6)
 }
+
+model AdminUser {
+  id        String   @id @default(uuid())
+  email     String   @unique @db.Citext
+  password  String
+  firstName String
+  lastName  String
+  role      String   @default("ADMIN")
+  isActive  Boolean  @default(true)
+  lastLogin DateTime? @db.Timestamptz(6)
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+
+  @@index([email])
+  @@index([role])
+}

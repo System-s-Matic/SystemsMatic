@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { Appointment, AppointmentStatus } from "../../types/appointment";
 import { backofficeApi } from "../../lib/backoffice-api";
+import { authApi, LoginCredentials } from "../../lib/auth-api";
+import { authCookies } from "../../lib/auth-cookies";
 import { formatGuadeloupeDateTime } from "../../lib/date-utils";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -14,9 +16,12 @@ dayjs.extend(timezone);
 
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [username, setUsername] = useState("");
+  const [token, setToken] = useState<string | null>(null);
+  const [user, setUser] = useState<any>(null);
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [authError, setAuthError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<AppointmentStatus | "ALL">(
@@ -24,32 +29,74 @@ export default function AdminPage() {
   );
   const [stats, setStats] = useState<any>(null);
 
-  const handleLogin = () => {
-    const validUser = process.env.NEXT_PUBLIC_BASIC_AUTH_USER;
-    const validPassword = process.env.NEXT_PUBLIC_BASIC_AUTH_PASS;
+  // Vérifier le token au chargement
+  useEffect(() => {
+    const storedToken = authCookies.getToken();
+    const storedUser = authCookies.getUser();
 
-    if (username === validUser && password === validPassword) {
+    if (storedToken && storedUser) {
+      setToken(storedToken);
+      setUser(storedUser);
+      setIsAuthenticated(true);
+
+      // Vérifier la validité du token en récupérant le profil
+      authApi
+        .getProfile(storedToken)
+        .then((userProfile) => {
+          // Mettre à jour les cookies avec les données fraîches
+          authCookies.setUser(userProfile);
+          setUser(userProfile);
+        })
+        .catch(() => {
+          // Token invalide, nettoyer les cookies
+          authCookies.clear();
+          setToken(null);
+          setUser(null);
+          setIsAuthenticated(false);
+        });
+    }
+  }, []);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setAuthError("");
+
+    try {
+      const response = await authApi.login({ email, password });
+      const { access_token, user: userData } = response;
+
+      // Stocker dans les cookies
+      authCookies.setToken(access_token);
+      authCookies.setUser(userData);
+
+      setToken(access_token);
+      setUser(userData);
       setIsAuthenticated(true);
       setAuthError("");
-    } else {
-      setAuthError("Identifiants incorrects");
+    } catch (error: any) {
+      setAuthError(error.response?.data?.message || "Erreur de connexion");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && token) {
       fetchAppointments();
       fetchStats();
     }
-  }, [filter, isAuthenticated]);
+  }, [filter, isAuthenticated, token]);
 
   const fetchAppointments = async () => {
+    if (!token) return;
+
     try {
       setLoading(true);
       const data =
         filter === "ALL"
-          ? await backofficeApi.getAppointments()
-          : await backofficeApi.getAppointments(filter);
+          ? await backofficeApi.getAppointments(token)
+          : await backofficeApi.getAppointments(token, filter);
 
       setAppointments(data);
     } catch (error) {
@@ -60,8 +107,10 @@ export default function AdminPage() {
   };
 
   const fetchStats = async () => {
+    if (!token) return;
+
     try {
-      const data = await backofficeApi.getStats();
+      const data = await backofficeApi.getStats(token);
       setStats(data);
     } catch (error) {
       console.error("Erreur lors du chargement des statistiques:", error);
@@ -73,8 +122,13 @@ export default function AdminPage() {
     status: AppointmentStatus,
     scheduledAt?: string
   ) => {
+    if (!token) return;
+
     try {
-      await backofficeApi.updateAppointmentStatus(id, { status, scheduledAt });
+      await backofficeApi.updateAppointmentStatus(token, id, {
+        status,
+        scheduledAt,
+      });
       fetchAppointments();
       fetchStats();
     } catch (error) {
@@ -82,45 +136,39 @@ export default function AdminPage() {
     }
   };
 
-  const cancelAppointment = async (id: string) => {
-    if (
-      confirm(
-        "Êtes-vous sûr de vouloir annuler ce rendez-vous ? Un email sera envoyé au client."
-      )
-    ) {
-      try {
-        await backofficeApi.cancelAppointment(id);
-        fetchAppointments();
-        fetchStats();
-      } catch (error) {
-        console.error("Erreur lors de l'annulation:", error);
-      }
-    }
-  };
-
-  const proposeReschedule = async (id: string) => {
-    const scheduledAt = prompt("Nouvelle date et heure (YYYY-MM-DDTHH:MM):");
-    if (scheduledAt) {
-      try {
-        await backofficeApi.proposeReschedule(id, { scheduledAt });
-        fetchAppointments();
-        alert("Proposition de reprogrammation envoyée au client");
-      } catch (error) {
-        console.error("Erreur lors de la proposition:", error);
-      }
-    }
-  };
-
   const deleteAppointment = async (id: string) => {
+    if (!token) return;
+
     if (confirm("Êtes-vous sûr de vouloir supprimer ce rendez-vous ?")) {
       try {
-        await backofficeApi.deleteAppointment(id);
+        await backofficeApi.deleteAppointment(token, id);
         fetchAppointments();
         fetchStats();
       } catch (error) {
         console.error("Erreur lors de la suppression:", error);
       }
     }
+  };
+
+  const sendReminder = async (id: string) => {
+    if (!token) return;
+
+    try {
+      await backofficeApi.sendReminder(token, id);
+      alert("Rappel envoyé avec succès");
+    } catch (error) {
+      console.error("Erreur lors de l'envoi du rappel:", error);
+    }
+  };
+
+  const handleLogout = () => {
+    // Nettoyer les cookies et l'état local
+    authCookies.clear();
+    setToken(null);
+    setUser(null);
+    setIsAuthenticated(false);
+    setAppointments([]);
+    setStats(null);
   };
 
   const formatDate = (date: string | Date) => {
@@ -157,309 +205,251 @@ export default function AdminPage() {
     }
   };
 
-  const getStatusClass = (status: AppointmentStatus) => {
+  const getStatusColor = (status: AppointmentStatus) => {
     switch (status) {
       case AppointmentStatus.PENDING:
-        return "pending";
+        return "status-pending";
       case AppointmentStatus.CONFIRMED:
-        return "confirmed";
+        return "status-confirmed";
       case AppointmentStatus.CANCELLED:
-        return "cancelled";
+        return "status-cancelled";
       case AppointmentStatus.REJECTED:
-        return "rejected";
+        return "status-rejected";
       case AppointmentStatus.COMPLETED:
-        return "completed";
+        return "status-completed";
       default:
         return "";
     }
   };
 
+  if (!isAuthenticated) {
+    return (
+      <div className="admin-login">
+        <div className="admin-login-container">
+          <h1>Connexion Administrateur</h1>
+          <p>Veuillez vous connecter pour accéder au backoffice</p>
+
+          <form onSubmit={handleLogin} className="auth-form">
+            {authError && <div className="auth-error">{authError}</div>}
+
+            <div className="auth-input-group">
+              <label htmlFor="email">Email</label>
+              <input
+                type="email"
+                id="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="auth-input"
+                placeholder="admin@systemsmatic.com"
+                required
+              />
+            </div>
+
+            <div className="auth-input-group">
+              <label htmlFor="password">Mot de passe</label>
+              <input
+                type="password"
+                id="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="auth-input"
+                placeholder="Mot de passe"
+                required
+              />
+            </div>
+
+            <button type="submit" disabled={isLoading} className="auth-button">
+              {isLoading ? (
+                <span className="auth-button-loading">
+                  <div className="auth-spinner"></div>
+                  Connexion...
+                </span>
+              ) : (
+                "Se connecter"
+              )}
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="admin-container">
+    <div className="admin-page">
+      <div className="admin-header">
+        <h1>Backoffice Administrateur</h1>
+        <div className="admin-user-info">
+          <span>
+            Connecté en tant que : {user?.firstName} {user?.lastName}
+          </span>
+          <button
+            onClick={handleLogout}
+            className="admin-login-button"
+            style={{ marginLeft: "1rem" }}
+          >
+            Déconnexion
+          </button>
+        </div>
+      </div>
+
+      <div className="admin-filters">
+        <select
+          value={filter}
+          onChange={(e) =>
+            setFilter(e.target.value as AppointmentStatus | "ALL")
+          }
+          className="admin-filter-select"
+        >
+          <option value="ALL">Tous les statuts</option>
+          <option value={AppointmentStatus.PENDING}>En attente</option>
+          <option value={AppointmentStatus.CONFIRMED}>Confirmé</option>
+          <option value={AppointmentStatus.CANCELLED}>Annulé</option>
+          <option value={AppointmentStatus.REJECTED}>Rejeté</option>
+          <option value={AppointmentStatus.COMPLETED}>Terminé</option>
+        </select>
+      </div>
+
+      {stats && (
+        <div className="admin-stats">
+          <div className="stat-card">
+            <h3>Total</h3>
+            <p>{stats.total || 0}</p>
+          </div>
+          <div className="stat-card">
+            <h3>En attente</h3>
+            <p>{stats.pending || 0}</p>
+          </div>
+          <div className="stat-card">
+            <h3>Confirmés</h3>
+            <p>{stats.confirmed || 0}</p>
+          </div>
+          <div className="stat-card">
+            <h3>Terminés</h3>
+            <p>{stats.completed || 0}</p>
+          </div>
+        </div>
+      )}
+
       <div className="admin-content">
-        {!isAuthenticated ? (
-          <div className="auth-container">
-            <h1 className="admin-title">Connexion Administration</h1>
-            <div className="auth-form">
-              <div className="auth-input-group">
-                <label htmlFor="username">Nom d'utilisateur</label>
-                <input
-                  type="text"
-                  id="username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="admin"
-                />
-              </div>
-              <div className="auth-input-group">
-                <label htmlFor="password">Mot de passe</label>
-                <input
-                  type="password"
-                  id="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="password"
-                />
-              </div>
-              {authError && <div className="auth-error">{authError}</div>}
-              <button onClick={handleLogin} className="auth-button">
-                Se connecter
-              </button>
+        {loading ? (
+          <div className="admin-loading">
+            <div className="admin-spinner">
+              <div className="admin-spinner-icon"></div>
+              <span>Chargement des rendez-vous...</span>
             </div>
           </div>
         ) : (
-          <>
-            <h1 className="admin-title">Administration - Rendez-vous</h1>
-            <p className="admin-timezone-info">
-              Heures affichées en fuseau horaire Guadeloupe (UTC-4)
-            </p>
+          <div className="appointments-list">
+            {appointments.length === 0 ? (
+              <p className="no-appointments">Aucun rendez-vous trouvé</p>
+            ) : (
+              appointments.map((appointment) => (
+                <div
+                  key={appointment.id}
+                  className={`appointment-card ${getStatusColor(
+                    appointment.status
+                  )}`}
+                >
+                  <div className="appointment-header">
+                    <h3>
+                      {appointment.contact.firstName}{" "}
+                      {appointment.contact.lastName}
+                    </h3>
+                    <span
+                      className={`status-badge ${getStatusColor(
+                        appointment.status
+                      )}`}
+                    >
+                      {getStatusLabel(appointment.status)}
+                    </span>
+                  </div>
 
-            {/* Statistiques */}
-            {stats && (
-              <div className="stats-grid">
-                <div className="stat-card">
-                  <div className="stat-number blue">{stats.total}</div>
-                  <div className="stat-label">Total</div>
+                  <div className="appointment-details">
+                    <p>
+                      <strong>Email :</strong> {appointment.contact.email}
+                    </p>
+                    <p>
+                      <strong>Téléphone :</strong>{" "}
+                      {appointment.contact.phone || "Non renseigné"}
+                    </p>
+                    <p>
+                      <strong>Demandé le :</strong>{" "}
+                      {formatRequestedDate(appointment.requestedAt)}
+                    </p>
+                    {appointment.scheduledAt && (
+                      <p>
+                        <strong>Programmé le :</strong>{" "}
+                        {formatDate(appointment.scheduledAt)}
+                      </p>
+                    )}
+                    <p>
+                      <strong>Créé le :</strong>{" "}
+                      {formatCreatedDate(appointment.createdAt)}
+                    </p>
+                    {appointment.message && (
+                      <p>
+                        <strong>Message :</strong> {appointment.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="appointment-actions">
+                    {appointment.status === AppointmentStatus.PENDING && (
+                      <>
+                        <button
+                          onClick={() =>
+                            updateAppointmentStatus(
+                              appointment.id,
+                              AppointmentStatus.CONFIRMED
+                            )
+                          }
+                          className="action-button confirm"
+                        >
+                          Confirmer
+                        </button>
+                        <button
+                          onClick={() =>
+                            updateAppointmentStatus(
+                              appointment.id,
+                              AppointmentStatus.REJECTED
+                            )
+                          }
+                          className="action-button reject"
+                        >
+                          Rejeter
+                        </button>
+                      </>
+                    )}
+                    {appointment.status === AppointmentStatus.CONFIRMED && (
+                      <button
+                        onClick={() =>
+                          updateAppointmentStatus(
+                            appointment.id,
+                            AppointmentStatus.COMPLETED
+                          )
+                        }
+                        className="action-button complete"
+                      >
+                        Marquer comme terminé
+                      </button>
+                    )}
+                    <button
+                      onClick={() => sendReminder(appointment.id)}
+                      className="action-button reminder"
+                    >
+                      Envoyer un rappel
+                    </button>
+                    <button
+                      onClick={() => deleteAppointment(appointment.id)}
+                      className="action-button delete"
+                    >
+                      Supprimer
+                    </button>
+                  </div>
                 </div>
-                <div className="stat-card">
-                  <div className="stat-number yellow">{stats.pending}</div>
-                  <div className="stat-label">En attente</div>
-                </div>
-                <div className="stat-card">
-                  <div className="stat-number green">{stats.confirmed}</div>
-                  <div className="stat-label">Confirmés</div>
-                </div>
-                <div className="stat-card">
-                  <div className="stat-number red">{stats.cancelled}</div>
-                  <div className="stat-label">Annulés</div>
-                </div>
-                <div className="stat-card">
-                  <div className="stat-number purple">{stats.completed}</div>
-                  <div className="stat-label">Terminés</div>
-                </div>
-              </div>
+              ))
             )}
-
-            {/* Filtres */}
-            <div className="filters-container">
-              <div className="filters-buttons">
-                {[
-                  "ALL",
-                  AppointmentStatus.PENDING,
-                  AppointmentStatus.CONFIRMED,
-                  AppointmentStatus.CANCELLED,
-                  AppointmentStatus.COMPLETED,
-                ].map((status) => (
-                  <button
-                    key={status}
-                    onClick={() =>
-                      setFilter(status as AppointmentStatus | "ALL")
-                    }
-                    className={`filter-button ${
-                      filter === status ? "active" : ""
-                    }`}
-                  >
-                    {status === "ALL"
-                      ? "Tous"
-                      : getStatusLabel(status as AppointmentStatus)}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Liste des rendez-vous */}
-            <div className="appointments-container">
-              {loading ? (
-                <div className="loading-container">
-                  <div className="loading-spinner"></div>
-                  <p className="loading-text">Chargement...</p>
-                </div>
-              ) : appointments.length === 0 ? (
-                <div className="empty-state">Aucun rendez-vous trouvé</div>
-              ) : (
-                <div className="appointments-table-container">
-                  <table className="appointments-table">
-                    <thead>
-                      <tr>
-                        <th>Client</th>
-                        <th>Date demandée</th>
-                        <th>Date confirmée</th>
-                        <th>Date création</th>
-                        <th>Statut</th>
-                        <th>Motif</th>
-                        <th>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {appointments.map((appointment) => (
-                        <tr key={appointment.id}>
-                          <td>
-                            <div className="client-info">
-                              <div className="client-name">
-                                {appointment.contact.firstName}{" "}
-                                {appointment.contact.lastName}
-                              </div>
-                              <div className="client-email">
-                                {appointment.contact.email}
-                              </div>
-                              {appointment.contact.phone && (
-                                <div className="client-phone">
-                                  {appointment.contact.phone}
-                                </div>
-                              )}
-                            </div>
-                          </td>
-                          <td>
-                            <div className="date-info">
-                              {formatRequestedDate(appointment.requestedAt)}
-                            </div>
-                          </td>
-                          <td>
-                            <div className="date-info">
-                              {appointment.scheduledAt
-                                ? formatDate(appointment.scheduledAt)
-                                : "-"}
-                            </div>
-                          </td>
-                          <td>
-                            <div className="date-info">
-                              {formatCreatedDate(appointment.createdAt)}
-                            </div>
-                          </td>
-                          <td>
-                            <span
-                              className={`status-badge ${getStatusClass(
-                                appointment.status
-                              )}`}
-                            >
-                              {getStatusLabel(appointment.status)}
-                            </span>
-                          </td>
-                          <td>
-                            <div className="reason-info">
-                              {appointment.reason || "-"}
-                            </div>
-                            {appointment.reasonOther && (
-                              <div className="reason-other">
-                                {appointment.reasonOther}
-                              </div>
-                            )}
-                          </td>
-                          <td>
-                            <div className="actions-container">
-                              {appointment.status ===
-                                AppointmentStatus.PENDING && (
-                                <>
-                                  <button
-                                    onClick={() => {
-                                      // Confirmer avec la date demandée + 2h
-                                      const requestedDatePlus2h = dayjs
-                                        .utc(appointment.requestedAt)
-                                        .tz("America/Guadeloupe")
-                                        .add(2, "hours")
-                                        .toISOString();
-
-                                      updateAppointmentStatus(
-                                        appointment.id,
-                                        AppointmentStatus.CONFIRMED,
-                                        requestedDatePlus2h
-                                      );
-                                    }}
-                                    className="action-button confirm"
-                                    title="Confirmer avec la date demandée (+2h)"
-                                  >
-                                    ✓ Confirmer
-                                  </button>
-                                  <button
-                                    onClick={() => {
-                                      const scheduledAt = prompt(
-                                        "Date et heure (YYYY-MM-DDTHH:MM):"
-                                      );
-                                      if (scheduledAt) {
-                                        updateAppointmentStatus(
-                                          appointment.id,
-                                          AppointmentStatus.CONFIRMED,
-                                          scheduledAt
-                                        );
-                                      }
-                                    }}
-                                    className="action-button reschedule"
-                                    title="Confirmer avec une autre date"
-                                  >
-                                    📅 Autre date
-                                  </button>
-                                  <button
-                                    onClick={() =>
-                                      updateAppointmentStatus(
-                                        appointment.id,
-                                        AppointmentStatus.REJECTED
-                                      )
-                                    }
-                                    className="action-button reject"
-                                  >
-                                    Rejeter
-                                  </button>
-                                </>
-                              )}
-                              {appointment.status ===
-                                AppointmentStatus.CONFIRMED && (
-                                <>
-                                  <button
-                                    onClick={() => {
-                                      const scheduledAt = prompt(
-                                        "Nouvelle date et heure (YYYY-MM-DDTHH:MM):"
-                                      );
-                                      if (scheduledAt) {
-                                        updateAppointmentStatus(
-                                          appointment.id,
-                                          AppointmentStatus.CONFIRMED,
-                                          scheduledAt
-                                        );
-                                      }
-                                    }}
-                                    className="action-button reschedule"
-                                  >
-                                    Reprogrammer
-                                  </button>
-                                  <button
-                                    onClick={() =>
-                                      proposeReschedule(appointment.id)
-                                    }
-                                    className="action-button propose"
-                                  >
-                                    Proposer
-                                  </button>
-                                </>
-                              )}
-                              {appointment.status !==
-                                AppointmentStatus.CANCELLED && (
-                                <button
-                                  onClick={() =>
-                                    cancelAppointment(appointment.id)
-                                  }
-                                  className="action-button cancel"
-                                >
-                                  Annuler
-                                </button>
-                              )}
-                              <button
-                                onClick={() =>
-                                  deleteAppointment(appointment.id)
-                                }
-                                className="action-button delete"
-                              >
-                                Supprimer
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          </>
+          </div>
         )}
       </div>
     </div>

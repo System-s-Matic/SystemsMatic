@@ -7,21 +7,18 @@ import {
   Param,
   Body,
   Query,
-  Headers,
-  BadRequestException,
+  UseGuards,
+  Request,
 } from '@nestjs/common';
 import { AppointmentsService } from '../appointments/appointments.service';
 import { AppointmentStatus } from '@prisma/client';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { AdminGuard } from '../auth/guards/admin.guard';
 
 @Controller('backoffice')
+@UseGuards(JwtAuthGuard, AdminGuard)
 export class BackofficeController {
   constructor(private readonly appointmentsService: AppointmentsService) {}
-
-  private addAdminHeaders(): Record<string, string> {
-    return {
-      'x-admin-key': process.env.ADMIN_API_KEY || '',
-    };
-  }
 
   @Get('appointments')
   async getAppointments(@Query('status') status?: AppointmentStatus) {
@@ -78,5 +75,16 @@ export class BackofficeController {
   @Post('appointments/:id/reminder')
   async sendReminder(@Param('id') id: string) {
     return this.appointmentsService.sendReminderAdmin(id);
+  }
+
+  @Get('profile')
+  async getProfile(@Request() req) {
+    return {
+      id: req.user.sub,
+      email: req.user.email,
+      firstName: req.user.firstName,
+      lastName: req.user.lastName,
+      role: req.user.role,
+    };
   }
 }
