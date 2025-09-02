@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { appointmentService } from "@/lib/api";
-import "../styles/appointment-actions.css";
+import "@/app/styles/appointment-actions.css";
 
 export default function ConfirmReschedulePage() {
   const params = useParams();
