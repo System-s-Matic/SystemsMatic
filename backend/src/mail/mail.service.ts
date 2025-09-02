@@ -76,11 +76,14 @@ export class MailService {
   async sendAppointmentConfirmation(appt: ApptWithContact) {
     if (!appt.contact) return;
     const to = appt.contact.email;
-    const date = appt.scheduledAt;
+    const scheduledDate = this.formatDate(
+      appt.scheduledAt,
+      'America/Guadeloupe',
+    );
     const subject = 'Confirmation de votre rendez-vous';
     const html = `
       <p>Bonjour ${appt.contact.firstName},</p>
-      <p>Votre rendez-vous est confirmé le <b>${date}</b>.</p>
+      <p>Votre rendez-vous est confirmé le <b>${scheduledDate}</b>.</p>
       <p>Annuler : <a href="${process.env.PUBLIC_URL}/appointments/${appt.id}/cancel?token=${appt.cancellationToken}">Annuler</a></p>
       <p><strong>Important :</strong> Vous ne pouvez annuler ce rendez-vous que jusqu'à 24h avant l'heure prévue. Passé ce délai, veuillez nous contacter directement.</p>
     `;
@@ -101,11 +104,14 @@ export class MailService {
   async sendAppointmentReminder(appt: ApptWithContact) {
     if (!appt.contact) return;
     const to = appt.contact.email;
-    const date = appt.scheduledAt;
+    const scheduledDate = this.formatDate(
+      appt.scheduledAt,
+      'America/Guadeloupe',
+    );
     const subject = 'Rappel : votre rendez-vous approche';
     const html = `
       <p>Bonjour ${appt.contact.firstName},</p>
-      <p>Petit rappel : votre rendez-vous est prévu le <b>${date}</b>.</p>
+      <p>Petit rappel : votre rendez-vous est prévu le <b>${scheduledDate}</b>.</p>
     `;
     await this.send(to, subject, html);
   }
@@ -113,11 +119,14 @@ export class MailService {
   async sendAppointmentRescheduleProposal(appt: ApptWithContact) {
     if (!appt.contact) return;
     const to = appt.contact.email;
-    const date = appt.scheduledAt;
+    const scheduledDate = this.formatDate(
+      appt.scheduledAt,
+      'America/Guadeloupe',
+    );
     const subject = 'Proposition de reprogrammation de votre rendez-vous';
     const html = `
       <p>Bonjour ${appt.contact.firstName},</p>
-      <p>Nous vous proposons de reprogrammer votre rendez-vous au <b>${date}</b>.</p>
+      <p>Nous vous proposons de reprogrammer votre rendez-vous au <b>${scheduledDate}</b>.</p>
       <p>Pour confirmer cette nouvelle date : <a href="${process.env.PUBLIC_URL}/appointments/${appt.id}/confirm?token=${appt.confirmationToken}">Confirmer</a></p>
       <p>Pour refuser et annuler : <a href="${process.env.PUBLIC_URL}/appointments/${appt.id}/cancel?token=${appt.cancellationToken}">Refuser</a></p>
       <p>Si vous refusez, vous devrez prendre un nouveau rendez-vous manuellement.</p>
