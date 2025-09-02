@@ -87,8 +87,27 @@ export class AuthService {
       },
     });
 
-    const { password: _, ...result } = user;
-    return result;
+    const { password: _, ...userWithoutPassword } = user;
+
+    // Créer le payload JWT
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+      firstName: user.firstName,
+      lastName: user.lastName,
+    };
+
+    return {
+      access_token: this.jwtService.sign(payload),
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+      },
+    };
   }
 
   async getProfile(userId: string) {

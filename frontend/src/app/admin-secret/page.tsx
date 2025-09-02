@@ -3,8 +3,7 @@
 import { useState, useEffect } from "react";
 import { Appointment, AppointmentStatus } from "../../types/appointment";
 import { backofficeApi } from "../../lib/backoffice-api";
-import { authApi, LoginCredentials } from "../../lib/auth-api";
-import { authCookies } from "../../lib/auth-cookies";
+import { authApi, LoginData } from "../../lib/auth-api";
 import { formatGuadeloupeDateTime } from "../../lib/date-utils";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -16,7 +15,6 @@ dayjs.extend(timezone);
 
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -29,33 +27,23 @@ export default function AdminPage() {
   );
   const [stats, setStats] = useState<any>(null);
 
-  // Vérifier le token au chargement
+  // Vérifier l'authentification au chargement
   useEffect(() => {
-    const storedToken = authCookies.getToken();
-    const storedUser = authCookies.getUser();
-
-    if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(storedUser);
-      setIsAuthenticated(true);
-
-      // Vérifier la validité du token en récupérant le profil
-      authApi
-        .getProfile(storedToken)
-        .then((userProfile) => {
-          // Mettre à jour les cookies avec les données fraîches
-          authCookies.setUser(userProfile);
-          setUser(userProfile);
-        })
-        .catch(() => {
-          // Token invalide, nettoyer les cookies
-          authCookies.clear();
-          setToken(null);
-          setUser(null);
-          setIsAuthenticated(false);
-        });
-    }
+    checkAuthStatus();
   }, []);
+
+  const checkAuthStatus = async () => {
+    try {
+      // Essayer de récupérer le profil utilisateur
+      const userProfile = await authApi.getProfile();
+      setUser(userProfile);
+      setIsAuthenticated(true);
+    } catch (error) {
+      // Non authentifié ou token expiré
+      setUser(null);
+      setIsAuthenticated(false);
+    }
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,16 +52,15 @@ export default function AdminPage() {
 
     try {
       const response = await authApi.login({ email, password });
-      const { access_token, user: userData } = response;
 
-      // Stocker dans les cookies
-      authCookies.setToken(access_token);
-      authCookies.setUser(userData);
-
-      setToken(access_token);
-      setUser(userData);
+      // Les cookies sont maintenant définis côté serveur
+      setUser(response.user);
       setIsAuthenticated(true);
       setAuthError("");
+
+      // Réinitialiser le formulaire
+      setEmail("");
+      setPassword("");
     } catch (error: any) {
       setAuthError(error.response?.data?.message || "Erreur de connexion");
     } finally {
@@ -82,21 +69,19 @@ export default function AdminPage() {
   };
 
   useEffect(() => {
-    if (isAuthenticated && token) {
+    if (isAuthenticated) {
       fetchAppointments();
       fetchStats();
     }
-  }, [filter, isAuthenticated, token]);
+  }, [filter, isAuthenticated]);
 
   const fetchAppointments = async () => {
-    if (!token) return;
-
     try {
       setLoading(true);
       const data =
         filter === "ALL"
-          ? await backofficeApi.getAppointments(token)
-          : await backofficeApi.getAppointments(token, filter);
+          ? await backofficeApi.getAppointments()
+          : await backofficeApi.getAppointments(undefined, filter);
 
       setAppointments(data);
     } catch (error) {
@@ -107,10 +92,8 @@ export default function AdminPage() {
   };
 
   const fetchStats = async () => {
-    if (!token) return;
-
     try {
-      const data = await backofficeApi.getStats(token);
+      const data = await backofficeApi.getStats();
       setStats(data);
     } catch (error) {
       console.error("Erreur lors du chargement des statistiques:", error);
@@ -122,10 +105,8 @@ export default function AdminPage() {
     status: AppointmentStatus,
     scheduledAt?: string
   ) => {
-    if (!token) return;
-
     try {
-      await backofficeApi.updateAppointmentStatus(token, id, {
+      await backofficeApi.updateAppointmentStatus(id, {
         status,
         scheduledAt,
       });
@@ -137,11 +118,9 @@ export default function AdminPage() {
   };
 
   const deleteAppointment = async (id: string) => {
-    if (!token) return;
-
     if (confirm("Êtes-vous sûr de vouloir supprimer ce rendez-vous ?")) {
       try {
-        await backofficeApi.deleteAppointment(token, id);
+        await backofficeApi.deleteAppointment(id);
         fetchAppointments();
         fetchStats();
       } catch (error) {
@@ -151,24 +130,29 @@ export default function AdminPage() {
   };
 
   const sendReminder = async (id: string) => {
-    if (!token) return;
-
     try {
-      await backofficeApi.sendReminder(token, id);
+      await backofficeApi.sendReminder(id);
       alert("Rappel envoyé avec succès");
     } catch (error) {
       console.error("Erreur lors de l'envoi du rappel:", error);
     }
   };
 
-  const handleLogout = () => {
-    // Nettoyer les cookies et l'état local
-    authCookies.clear();
-    setToken(null);
-    setUser(null);
-    setIsAuthenticated(false);
-    setAppointments([]);
-    setStats(null);
+  const handleLogout = async () => {
+    try {
+      await authApi.logout();
+      setUser(null);
+      setIsAuthenticated(false);
+      setAppointments([]);
+      setStats(null);
+    } catch (error) {
+      console.error("Erreur lors de la déconnexion:", error);
+      // Forcer la déconnexion même en cas d'erreur
+      setUser(null);
+      setIsAuthenticated(false);
+      setAppointments([]);
+      setStats(null);
+    }
   };
 
   const formatDate = (date: string | Date) => {
