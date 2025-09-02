@@ -561,6 +561,40 @@ export class AppointmentsService {
       );
     }
 
+    // Validation des contraintes de reprogrammation
+    const proposedDate = new Date(newScheduledAt);
+    const now = new Date();
+
+    // Vérifier qu'il y a au moins 24h d'avance
+    const timeDifference = proposedDate.getTime() - now.getTime();
+    const hoursDifference = timeDifference / (1000 * 60 * 60);
+
+    if (hoursDifference < 24) {
+      throw new BadRequestException(
+        "La reprogrammation doit être proposée au moins 24h à l'avance",
+      );
+    }
+
+    // Vérifier que l'heure est dans les créneaux autorisés (8h-17h)
+    const hour = proposedDate.getHours();
+    if (
+      hour < 8 ||
+      hour > 17 ||
+      (hour === 17 && proposedDate.getMinutes() > 0)
+    ) {
+      throw new BadRequestException(
+        'Les créneaux autorisés sont entre 8h et 17h',
+      );
+    }
+
+    // Vérifier que les minutes sont 0 ou 30
+    const minutes = proposedDate.getMinutes();
+    if (minutes !== 0 && minutes !== 30) {
+      throw new BadRequestException(
+        "Les créneaux doivent être à l'heure pile ou à la demi-heure",
+      );
+    }
+
     // Mettre à jour la date proposée avec le statut RESCHEDULED
     const updated = await this.prisma.appointment.update({
       where: { id },
@@ -571,6 +605,48 @@ export class AppointmentsService {
       },
       include: { contact: true },
     });
+
+    // Créer ou mettre à jour le rappel
+    const reminderDueAt = new Date(newScheduledAt);
+    reminderDueAt.setHours(reminderDueAt.getHours() - 24);
+
+    const existingReminder = await this.prisma.reminder.findUnique({
+      where: { appointmentId: id },
+    });
+
+    if (existingReminder) {
+      // Mettre à jour le rappel existant
+      const jobId = await this.reminder.scheduleReminder({
+        id: updated.id,
+        scheduledAt: updated.scheduledAt,
+      });
+      await this.prisma.reminder.update({
+        where: { id: existingReminder.id },
+        data: {
+          dueAt: reminderDueAt,
+          providerRef: jobId || null,
+        },
+      });
+    } else {
+      // Créer un nouveau rappel
+      const reminder = await this.prisma.reminder.create({
+        data: {
+          appointmentId: updated.id,
+          dueAt: reminderDueAt,
+        },
+      });
+
+      const jobId = await this.reminder.scheduleReminder({
+        id: updated.id,
+        scheduledAt: updated.scheduledAt,
+      });
+      if (jobId) {
+        await this.prisma.reminder.update({
+          where: { id: reminder.id },
+          data: { providerRef: jobId },
+        });
+      }
+    }
 
     // Envoyer un email de proposition de reprogrammation
     await this.mail.sendAppointmentRescheduleProposal(updated);

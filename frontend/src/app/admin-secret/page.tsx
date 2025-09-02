@@ -1,15 +1,21 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Appointment, AppointmentStatus } from "../../types/appointment";
-import { backofficeApi } from "../../lib/backoffice-api";
-import { authApi, LoginData } from "../../lib/auth-api";
-import { formatGuadeloupeDateTime } from "../../lib/date-utils";
+import { backofficeApi } from "@/lib/backoffice-api";
+import { authApi, LoginData } from "@/lib/auth-api";
+import {
+  Appointment,
+  AppointmentStatus,
+  AppointmentReason,
+} from "@/types/appointment";
+import { formatGuadeloupeDateTime } from "@/lib/date-utils";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
-import { showSuccess, showError } from "../../lib/toast";
-import "../../app/styles/admin-backoffice.css";
+import { showSuccess, showError } from "@/lib/toast";
+import AdminDateTimePicker from "@/components/AdminDateTimePicker";
+import "@/app/styles/admin-backoffice.css";
+import "@/app/styles/native-datetime-picker.css";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -515,54 +521,36 @@ export default function AdminPage() {
                           proposition de date/heure. Il pourra accepter ou
                           refuser.
                         </p>
-                        <input
-                          type="datetime-local"
+                        <AdminDateTimePicker
                           value={selectedDateTime}
-                          onChange={(e) => setSelectedDateTime(e.target.value)}
-                          className="date-time-input"
-                          min={new Date().toISOString().slice(0, 16)}
-                        />
-                        <div className="date-picker-actions">
-                          <button
-                            onClick={async () => {
-                              if (selectedDateTime) {
-                                try {
-                                  await backofficeApi.proposeReschedule(
-                                    appointment.id,
-                                    selectedDateTime
-                                  );
-                                  showSuccess(
-                                    "Proposition de reprogrammation envoyée"
-                                  );
-                                  setShowDatePicker(null);
-                                  setSelectedDateTime("");
-                                  fetchAppointments(); // Recharger la liste
-                                } catch (error) {
-                                  console.error(
-                                    "Erreur lors de la reprogrammation:",
-                                    error
-                                  );
-                                  showError(
-                                    "Erreur lors de la reprogrammation"
-                                  );
-                                }
+                          onChange={setSelectedDateTime}
+                          onConfirm={async () => {
+                            if (selectedDateTime) {
+                              try {
+                                await backofficeApi.proposeReschedule(
+                                  appointment.id,
+                                  selectedDateTime
+                                );
+                                showSuccess(
+                                  "Proposition de reprogrammation envoyée"
+                                );
+                                setShowDatePicker(null);
+                                setSelectedDateTime("");
+                                fetchAppointments();
+                              } catch (error) {
+                                console.error(
+                                  "Erreur lors de la reprogrammation:",
+                                  error
+                                );
+                                showError("Erreur lors de la reprogrammation");
                               }
-                            }}
-                            className="action-button confirm"
-                            disabled={!selectedDateTime}
-                          >
-                            Proposer
-                          </button>
-                          <button
-                            onClick={() => {
-                              setShowDatePicker(null);
-                              setSelectedDateTime("");
-                            }}
-                            className="action-button reject"
-                          >
-                            Annuler
-                          </button>
-                        </div>
+                            }
+                          }}
+                          onCancel={() => {
+                            setShowDatePicker(null);
+                            setSelectedDateTime("");
+                          }}
+                        />
                       </div>
                     </div>
                   )}
