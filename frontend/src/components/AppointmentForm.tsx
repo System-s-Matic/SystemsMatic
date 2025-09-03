@@ -52,7 +52,16 @@ export default function AppointmentForm({ onSubmit }: AppointmentFormProps) {
   // Mettre à jour le champ requestedAt quand la date/heure change
   useEffect(() => {
     if (selectedDateTime) {
-      setValue("requestedAt", selectedDateTime.toISOString());
+      const year = selectedDateTime.getFullYear();
+      const month = (selectedDateTime.getMonth() + 1)
+        .toString()
+        .padStart(2, "0");
+      const day = selectedDateTime.getDate().toString().padStart(2, "0");
+      const hours = selectedDateTime.getHours().toString().padStart(2, "0");
+      const minutes = selectedDateTime.getMinutes().toString().padStart(2, "0");
+
+      const localISOString = `${year}-${month}-${day}T${hours}:${minutes}:00.000`;
+      setValue("requestedAt", localISOString);
     }
   }, [selectedDateTime, setValue]);
 
@@ -64,7 +73,7 @@ export default function AppointmentForm({ onSubmit }: AppointmentFormProps) {
         reasonOther: data.reason === "AUTRE" ? data.reasonOther : undefined,
         phone: data.phone || undefined,
         message: data.message || undefined,
-        requestedAt: convertToUTC(data.requestedAt),
+        requestedAt: data.requestedAt,
       };
 
       await onSubmit(cleanedData);

@@ -8,7 +8,10 @@ import {
   AppointmentStatus,
   AppointmentReason,
 } from "@/types/appointment";
-import { formatGuadeloupeDateTime } from "@/lib/date-utils";
+import {
+  formatGuadeloupeDateTime,
+  formatLocalStoredDateTime,
+} from "@/lib/date-utils";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";

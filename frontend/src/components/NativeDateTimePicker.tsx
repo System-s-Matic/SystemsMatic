@@ -6,6 +6,7 @@ import {
   getCurrentGuadeloupeTime,
   getMaximumBookingDate,
 } from "../lib/date-utils";
+import dayjs from "dayjs";
 
 interface NativeDateTimePickerProps {
   value: Date | null;
@@ -60,30 +61,7 @@ export default function NativeDateTimePicker({
   const updateDateTime = useCallback(
     (date: string, time: string) => {
       if (date && time) {
-        // Créer la date en heure locale de Guadeloupe
-        const guadeloupeTime = getCurrentGuadeloupeTime()
-          .year(parseInt(date.split("-")[0]))
-          .month(parseInt(date.split("-")[1]) - 1)
-          .date(parseInt(date.split("-")[2]))
-          .hour(parseInt(time.split(":")[0]))
-          .minute(parseInt(time.split(":")[1]))
-          .second(0)
-          .millisecond(0);
-
-        // Vérifier que la date est dans la plage autorisée
-        const minBookingDate = getCurrentGuadeloupeTime().add(1, "day");
-        const maxBookingDate = getMaximumBookingDate();
-
-        if (
-          guadeloupeTime.isBefore(minBookingDate) ||
-          guadeloupeTime.isAfter(maxBookingDate)
-        ) {
-          console.warn("Date sélectionnée hors de la plage autorisée");
-          onChange(null);
-          return;
-        }
-
-        // Créer une Date JavaScript avec les valeurs exactes sélectionnées (sans conversion timezone)
+        // Créer directement une Date JavaScript avec l'heure sélectionnée
         const localDate = new Date(
           parseInt(date.split("-")[0]),
           parseInt(date.split("-")[1]) - 1,
@@ -93,6 +71,21 @@ export default function NativeDateTimePicker({
           0,
           0
         );
+
+        // Vérifier que la date est dans la plage autorisée
+        const minBookingDate = getCurrentGuadeloupeTime().add(1, "day");
+        const maxBookingDate = getMaximumBookingDate();
+
+        const selectedDateTime = dayjs(localDate);
+
+        if (
+          selectedDateTime.isBefore(minBookingDate) ||
+          selectedDateTime.isAfter(maxBookingDate)
+        ) {
+          console.warn("Date sélectionnée hors de la plage autorisée");
+          onChange(null);
+          return;
+        }
 
         onChange(localDate);
       } else {

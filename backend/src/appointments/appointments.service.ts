@@ -61,14 +61,32 @@ export class AppointmentsService {
     const confirmationToken = this.generateToken();
     const cancellationToken = this.generateToken();
 
-    // Créer le rendez-vous - requestedAt est déjà en UTC depuis le frontend
+    // Traiter requestedAt comme une heure locale sélectionnée
+    let processedRequestedAt: Date;
+
+    if (typeof requestedAt === 'string') {
+      // Utiliser dayjs pour interpréter l'heure locale correctement
+      const guadeloupeTime = dayjs.tz(requestedAt, 'America/Guadeloupe');
+
+      // Vérifier que la date est valide
+      if (!guadeloupeTime.isValid()) {
+        throw new BadRequestException('Date invalide reçue');
+      }
+
+      // Convertir en Date JavaScript (sera stockée en UTC dans la BDD)
+      processedRequestedAt = guadeloupeTime.toDate();
+    } else {
+      processedRequestedAt = requestedAt;
+    }
+
+    // Créer le rendez-vous avec la date traitée
     const appointment = await this.prisma.appointment.create({
       data: {
         contactId: contact.id,
         reason,
         reasonOther,
         message,
-        requestedAt: new Date(requestedAt),
+        requestedAt: processedRequestedAt,
         confirmationToken,
         cancellationToken,
       },
@@ -288,38 +306,19 @@ export class AppointmentsService {
   ) {
     const appointment = await this.findOneAdmin(id);
 
-    console.log('updateStatusAdmin - Input:', {
-      id,
-      status: data.status,
-      scheduledAt: data.scheduledAt,
-      currentStatus: appointment.status,
-      currentScheduledAt: appointment.scheduledAt,
-      requestedAt: appointment.requestedAt,
-    });
-
     const updateData: any = { status: data.status };
 
     // Si on confirme sans scheduledAt, utiliser la date demandée
     if (data.status === AppointmentStatus.CONFIRMED && !data.scheduledAt) {
-      console.log(
-        'updateStatusAdmin - Confirming with requestedAt:',
-        appointment.requestedAt,
-      );
       updateData.scheduledAt = appointment.requestedAt;
       updateData.confirmedAt = new Date();
     } else if (data.scheduledAt) {
-      console.log(
-        'updateStatusAdmin - Confirming with provided scheduledAt:',
-        data.scheduledAt,
-      );
       updateData.scheduledAt = new Date(data.scheduledAt);
 
       if (data.status === AppointmentStatus.CONFIRMED) {
         updateData.confirmedAt = new Date();
       }
     }
-
-    console.log('updateStatusAdmin - Final updateData:', updateData);
 
     const updated = await this.prisma.appointment.update({
       where: { id },

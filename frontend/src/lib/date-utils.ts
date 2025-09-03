@@ -85,6 +85,14 @@ export const formatGuadeloupeDateTime = (date: string | Date) => {
 };
 
 /**
+ * Fonction pour afficher les dates stockées localement (sans conversion UTC forcée)
+ * À utiliser pour les dates qui sont déjà stockées en heure locale
+ */
+export const formatLocalStoredDateTime = (date: string | Date) => {
+  return dayjs(date).tz(GUADELOUPE_TIMEZONE).format("DD/MM/YYYY HH:mm");
+};
+
+/**
  * Formate une date pour l'input datetime-local
  */
 export const formatForDateTimeInput = (date: string | Date) => {
