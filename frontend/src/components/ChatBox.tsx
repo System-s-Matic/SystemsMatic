@@ -20,10 +20,11 @@ interface Dialog {
 
 interface Message {
   id: string;
-  type: "user" | "assistant";
+  type: "user" | "assistant" | "user-options";
   content: string;
   timestamp: Date;
   isTyping?: boolean;
+  options?: DialogOption[];
 }
 
 const dialog: Dialog = {
@@ -109,9 +110,19 @@ export default function ChatBox() {
         content: current.question || "",
         timestamp: new Date(),
       };
-      setMessages([welcomeMessage]);
+
+      // Ajouter les options comme un message séparé
+      const optionsMessage: Message = {
+        id: "2",
+        type: "user-options",
+        content: "",
+        timestamp: new Date(),
+        options: current.options,
+      };
+
+      setMessages([welcomeMessage, optionsMessage]);
     }
-  }, [isOpen, current.question, messages.length]);
+  }, [isOpen, current.question, current.options, messages.length]);
 
   const handleOptionClick = (option: DialogOption) => {
     // Ajouter le message de l'utilisateur
@@ -153,6 +164,18 @@ export default function ChatBox() {
 
             // Retourner au menu principal après un délai
             setTimeout(() => {
+              const nextDialog = dialog[nextStep.next || "start"];
+              if (nextDialog?.options) {
+                // Ajouter les nouvelles options comme un message
+                const newOptionsMessage: Message = {
+                  id: (Date.now() + 2).toString(),
+                  type: "user-options",
+                  content: "",
+                  timestamp: new Date(),
+                  options: nextDialog.options,
+                };
+                setMessages((prev) => [...prev, newOptionsMessage]);
+              }
               setStep(nextStep.next || "start");
             }, 2000);
           });
@@ -263,18 +286,48 @@ export default function ChatBox() {
                     </svg>
                   </div>
                 )}
-                <div className="message__content">
-                  <div className="message__bubble">
-                    {message.isTyping ? (
-                      <div className="typing-indicator">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                      </div>
-                    ) : (
-                      <p>{message.content}</p>
-                    )}
+                {message.type === "user-options" && (
+                  <div className="message__avatar">
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
                   </div>
+                )}
+                <div className="message__content">
+                  {message.type === "user-options" ? (
+                    <div className="message__options">
+                      {message.options?.map((opt, i) => (
+                        <button
+                          key={i}
+                          className="message__option-btn"
+                          onClick={() => handleOptionClick(opt)}
+                          disabled={isTyping}
+                        >
+                          {opt.text}
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="message__bubble">
+                      {message.isTyping ? (
+                        <div className="typing-indicator">
+                          <span></span>
+                          <span></span>
+                          <span></span>
+                        </div>
+                      ) : (
+                        <p>{message.content}</p>
+                      )}
+                    </div>
+                  )}
                   <span className="message__time">
                     {message.timestamp.toLocaleTimeString("fr-FR", {
                       hour: "2-digit",
@@ -287,21 +340,6 @@ export default function ChatBox() {
             {/* Élément invisible pour le scroll automatique */}
             <div ref={messagesEndRef} />
           </div>
-
-          {current.options && (
-            <div className="chatbox__options">
-              {current.options.map((opt, i) => (
-                <button
-                  key={i}
-                  className="chatbox__option-btn"
-                  onClick={() => handleOptionClick(opt)}
-                  disabled={isTyping}
-                >
-                  {opt.text}
-                </button>
-              ))}
-            </div>
-          )}
         </div>
       )}
     </>
