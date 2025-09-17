@@ -207,7 +207,7 @@ export default function AdminPage() {
   };
 
   const formatCreatedDate = (date: string | Date) => {
-    return dayjs.utc(date).tz("America/Guadeloupe").format("DD/MM/YYYY HH:mm");
+    return formatGuadeloupeDateTime(date);
   };
 
   const getStatusLabel = (status: AppointmentStatus) => {

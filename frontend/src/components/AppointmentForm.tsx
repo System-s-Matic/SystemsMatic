@@ -15,8 +15,11 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 
+// Configuration des plugins dayjs
 dayjs.extend(utc);
 dayjs.extend(timezone);
+
+// Import des styles CSS
 import "../app/styles/appointment-form.css";
 import "../app/styles/native-datetime-picker.css";
 
@@ -24,10 +27,15 @@ interface AppointmentFormProps {
   onSubmit: (data: CreateAppointmentDto) => Promise<void>;
 }
 
+/**
+ * Formulaire de demande de rendez-vous avec gestion des timezones
+ * @param onSubmit Fonction appelée lors de la soumission
+ */
 export default function AppointmentForm({ onSubmit }: AppointmentFormProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showOtherReason, setShowOtherReason] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [showOtherReason, setShowOtherReason] = useState<boolean>(false);
   const [selectedDateTime, setSelectedDateTime] = useState<Date | null>(null);
+  const [timezoneDisplay, setTimezoneDisplay] = useState<string>("");
 
   const {
     register,
@@ -53,12 +61,13 @@ export default function AppointmentForm({ onSubmit }: AppointmentFormProps) {
 
   const selectedReason = watch("reason");
 
-  // Mémoriser le gestionnaire de changement de date
+  useEffect(() => {
+    setTimezoneDisplay(getUserTimezoneDisplayName());
+  }, []);
+
   const handleDateChange = useCallback((date: Date | null) => {
     setSelectedDateTime(date);
   }, []);
-
-  // Mettre à jour le champ requestedAt quand la date/heure change
   useEffect(() => {
     if (selectedDateTime) {
       const year = selectedDateTime.getFullYear();
@@ -69,21 +78,22 @@ export default function AppointmentForm({ onSubmit }: AppointmentFormProps) {
       const hours = selectedDateTime.getHours().toString().padStart(2, "0");
       const minutes = selectedDateTime.getMinutes().toString().padStart(2, "0");
 
-      // Créer la date locale et la convertir en UTC pour l'envoi
       const localISOString = `${year}-${month}-${day}T${hours}:${minutes}:00.000`;
       const userTimezone = getUserTimezone();
-      const utcISOString = dayjs
-        .tz(localISOString, userTimezone)
-        .utc()
-        .toISOString();
-      setValue("requestedAt", utcISOString);
+      const dateWithOffset = dayjs.tz(localISOString, userTimezone).format();
+      setValue("requestedAt", dateWithOffset);
     }
   }, [selectedDateTime, setValue]);
 
+  /**
+   * Gestionnaire de soumission du formulaire
+   * @param data Données validées du formulaire
+   */
   const onSubmitForm = async (data: CreateAppointmentDto) => {
     setIsSubmitting(true);
+
     try {
-      const cleanedData = {
+      const cleanedData: CreateAppointmentDto = {
         ...data,
         reasonOther: data.reason === "AUTRE" ? data.reasonOther : undefined,
         phone: data.phone || undefined,
@@ -96,7 +106,7 @@ export default function AppointmentForm({ onSubmit }: AppointmentFormProps) {
       reset();
       setSelectedDateTime(null);
     } catch (error) {
-      console.error("Erreur lors de la soumission:", error);
+      console.error("Erreur lors de la soumission du formulaire:", error);
     } finally {
       setIsSubmitting(false);
     }
@@ -172,7 +182,7 @@ export default function AppointmentForm({ onSubmit }: AppointmentFormProps) {
         />
       </div>
 
-      {/* Sélection de date et heure native */}
+      {/* Sélection de date et heure */}
       <div className="form-group">
         <label className="form-label required">Date et heure souhaitées</label>
 
@@ -194,7 +204,7 @@ export default function AppointmentForm({ onSubmit }: AppointmentFormProps) {
         </p>
         <p className="form-help timezone-info">
           <strong>Votre timezone détectée :</strong>{" "}
-          {getUserTimezoneDisplayName()}
+          {timezoneDisplay || "Chargement..."}
         </p>
       </div>
 

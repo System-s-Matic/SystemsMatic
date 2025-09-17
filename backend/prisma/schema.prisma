@@ -55,7 +55,7 @@ model Appointment {
   reasonOther String?
   message     String?
   requestedAt DateTime           @db.Timestamptz(6)
-  timezone    String             @default("America/Guadeloupe") // Timezone de l'utilisateur lors de la demande
+  timezone    String             // Timezone de l'utilisateur lors de la demande (dynamique)
 
   // Planif
   status      AppointmentStatus @default(PENDING)

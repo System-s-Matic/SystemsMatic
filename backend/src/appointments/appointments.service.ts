@@ -2,6 +2,7 @@ import {
   Injectable,
   BadRequestException,
   NotFoundException,
+  Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { MailService } from '../mail/mail.service';
@@ -13,19 +14,35 @@ import * as dayjs from 'dayjs';
 import * as utc from 'dayjs/plugin/utc';
 import * as timezone from 'dayjs/plugin/timezone';
 
+// Configuration des plugins dayjs pour la gestion des dates
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-const GUADELOUPE_TIMEZONE = 'America/Guadeloupe';
+const REFERENCE_TIMEZONE = 'America/Guadeloupe';
+const MINIMUM_CANCELLATION_HOURS = 24;
+const AUTHORIZED_TIME_SLOTS = {
+  MORNING: { START: 8, END: 12 },
+  AFTERNOON: { START: 14, END: 17 },
+};
 
+/**
+ * Service de gestion des rendez-vous
+ */
 @Injectable()
 export class AppointmentsService {
+  private readonly logger = new Logger(AppointmentsService.name);
+
   constructor(
-    private prisma: PrismaService,
-    private mail: MailService,
-    private reminder: ReminderScheduler,
+    private readonly prisma: PrismaService,
+    private readonly mail: MailService,
+    private readonly reminder: ReminderScheduler,
   ) {}
 
+  /**
+   * Crée une nouvelle demande de rendez-vous
+   * @param dto Données de la demande
+   * @returns Rendez-vous créé avec contact
+   */
   async create(dto: CreateAppointmentDto) {
     const {
       email,
@@ -40,65 +57,43 @@ export class AppointmentsService {
       consent,
     } = dto;
 
-    // Créer ou récupérer le contact
-    const contact = await this.prisma.contact.upsert({
-      where: { email },
-      update: {
-        firstName,
-        lastName,
-        phone,
-        consentAt: consent ? new Date() : undefined,
-      },
-      create: {
+    try {
+      const contact = await this.upsertContact({
         email,
         firstName,
         lastName,
         phone,
-        consentAt: consent ? new Date() : undefined,
-      },
-    });
+        consent,
+      });
 
-    // Générer les tokens uniques
-    const confirmationToken = this.generateToken();
-    const cancellationToken = this.generateToken();
+      const tokens = this.generateSecurityTokens();
+      const processedRequestedAt = this.processRequestedDate(
+        requestedAt,
+        timezone,
+      );
 
-    // Traiter requestedAt comme une date UTC déjà convertie par le frontend
-    let processedRequestedAt: Date;
+      const appointment = await this.prisma.appointment.create({
+        data: {
+          contactId: contact.id,
+          reason,
+          reasonOther,
+          message,
+          requestedAt: processedRequestedAt,
+          timezone: timezone,
+          ...tokens,
+        },
+        include: { contact: true },
+      });
 
-    if (typeof requestedAt === 'string') {
-      // La date est déjà en UTC, on la traite directement
-      const utcTime = dayjs.utc(requestedAt);
+      await this.mail.sendAppointmentRequest(appointment.contact, appointment);
 
-      // Vérifier que la date est valide
-      if (!utcTime.isValid()) {
-        throw new BadRequestException('Date invalide reçue');
-      }
-
-      // Convertir en Date JavaScript (sera stockée en UTC dans la BDD)
-      processedRequestedAt = utcTime.toDate();
-    } else {
-      processedRequestedAt = requestedAt;
+      return appointment;
+    } catch (error) {
+      this.logger.error(
+        `Erreur lors de la création du rendez-vous: ${error.message}`,
+      );
+      throw error;
     }
-
-    // Créer le rendez-vous avec la date traitée
-    const appointment = await this.prisma.appointment.create({
-      data: {
-        contactId: contact.id,
-        reason,
-        reasonOther,
-        message,
-        requestedAt: processedRequestedAt,
-        timezone: timezone || GUADELOUPE_TIMEZONE,
-        confirmationToken,
-        cancellationToken,
-      },
-      include: { contact: true },
-    });
-
-    // Envoyer l'email de confirmation de demande
-    await this.mail.sendAppointmentRequest(appointment.contact, appointment);
-
-    return appointment;
   }
 
   async confirm(id: string, dto: ConfirmAppointmentDto) {
@@ -161,53 +156,61 @@ export class AppointmentsService {
   }
 
   /**
-   * Vérifie si un rendez-vous peut être annulé (au moins 24h à l'avance)
+   * Vérifie si un rendez-vous peut être annulé (minimum 24h à l'avance)
+   * @param appointment Rendez-vous à vérifier
+   * @returns true si annulation possible
    */
-  canCancelAppointment(appt: any): boolean {
-    if (appt.status !== AppointmentStatus.CONFIRMED || !appt.scheduledAt) {
+  canCancelAppointment(appointment: any): boolean {
+    if (
+      appointment.status !== AppointmentStatus.CONFIRMED ||
+      !appointment.scheduledAt
+    ) {
       return false;
     }
 
-    const now = new Date();
-    const appointmentTime = new Date(appt.scheduledAt);
-    const timeDifference = appointmentTime.getTime() - now.getTime();
-    const hoursDifference = timeDifference / (1000 * 60 * 60);
+    const hoursUntilAppointment = this.calculateHoursUntilAppointment(
+      appointment.scheduledAt,
+    );
 
-    return hoursDifference >= 24;
+    return hoursUntilAppointment >= MINIMUM_CANCELLATION_HOURS;
   }
 
   /**
-   * Vérifie si un rendez-vous peut être annulé (avec token)
+   * Vérifie si un rendez-vous peut être annulé avec validation du token
+   * @param id Identifiant du rendez-vous
+   * @param token Token d'annulation
+   * @returns Informations sur la possibilité d'annulation
    */
   async canCancelCheck(id: string, token: string) {
-    const appt = await this.prisma.appointment.findUnique({
+    const appointment = await this.prisma.appointment.findUnique({
       where: { id },
       include: { contact: true },
     });
 
-    if (!appt || appt.cancellationToken !== token) {
-      throw new BadRequestException('Token invalide');
+    if (!appointment || appointment.cancellationToken !== token) {
+      throw new BadRequestException("Token d'annulation invalide");
     }
 
-    const canCancel = this.canCancelAppointment(appt);
-    const now = new Date();
-    const appointmentTime = appt.scheduledAt
-      ? new Date(appt.scheduledAt)
-      : null;
+    const canCancel = this.canCancelAppointment(appointment);
 
     let remainingHours = null;
-    if (appointmentTime) {
-      const timeDifference = appointmentTime.getTime() - now.getTime();
-      remainingHours = Math.max(0, timeDifference / (1000 * 60 * 60));
+    if (appointment.scheduledAt) {
+      remainingHours = Math.max(
+        0,
+        this.calculateHoursUntilAppointment(appointment.scheduledAt),
+      );
+      remainingHours = Math.round(remainingHours * 100) / 100;
     }
 
-    return {
+    const result = {
       canCancel,
-      remainingHours: Math.round(remainingHours * 100) / 100,
+      remainingHours,
       message: canCancel
         ? 'Vous pouvez annuler ce rendez-vous'
-        : "Impossible d'annuler ce rendez-vous (moins de 24h à l'avance)",
+        : `Impossible d'annuler ce rendez-vous (moins de ${MINIMUM_CANCELLATION_HOURS}h à l'avance)`,
     };
+
+    return result;
   }
 
   async cancel(id: string, token: string) {
@@ -715,6 +718,106 @@ export class AppointmentsService {
     };
   }
 
+  /**
+   * Crée ou met à jour un contact
+   * @param contactData Données du contact
+   * @returns Contact créé ou mis à jour
+   */
+  private async upsertContact(contactData: {
+    email: string;
+    firstName: string;
+    lastName: string;
+    phone?: string;
+    consent: boolean;
+  }) {
+    return this.prisma.contact.upsert({
+      where: { email: contactData.email },
+      update: {
+        firstName: contactData.firstName,
+        lastName: contactData.lastName,
+        phone: contactData.phone,
+        consentAt: contactData.consent ? new Date() : undefined,
+      },
+      create: {
+        email: contactData.email,
+        firstName: contactData.firstName,
+        lastName: contactData.lastName,
+        phone: contactData.phone,
+        consentAt: contactData.consent ? new Date() : undefined,
+      },
+    });
+  }
+
+  /**
+   * Génère les tokens de sécurité
+   * @returns Tokens de confirmation et d'annulation
+   */
+  private generateSecurityTokens() {
+    return {
+      confirmationToken: this.generateToken(),
+      cancellationToken: this.generateToken(),
+    };
+  }
+
+  /**
+   * Traite la date demandée avec timezone
+   * @param requestedAt Date demandée
+   * @param timezone Timezone utilisateur
+   * @returns Date traitée
+   */
+  private processRequestedDate(
+    requestedAt: string | Date,
+    timezone: string,
+  ): Date {
+    if (typeof requestedAt === 'string') {
+      const dateWithOffset = dayjs(requestedAt);
+
+      if (!dateWithOffset.isValid()) {
+        throw new BadRequestException('Date invalide reçue');
+      }
+
+      return dateWithOffset.toDate();
+    }
+
+    return requestedAt;
+  }
+
+  /**
+   * Vérifie si l'heure est dans les créneaux autorisés
+   * @param date Date à vérifier
+   * @param timezone Timezone de référence
+   * @returns true si créneau valide
+   */
+  private isValidTimeSlot(
+    date: Date,
+    timezone: string = REFERENCE_TIMEZONE,
+  ): boolean {
+    const guadeloupeTime = dayjs(date).tz(timezone);
+    const hour = guadeloupeTime.hour();
+
+    return (
+      (hour >= AUTHORIZED_TIME_SLOTS.MORNING.START &&
+        hour < AUTHORIZED_TIME_SLOTS.MORNING.END) ||
+      (hour >= AUTHORIZED_TIME_SLOTS.AFTERNOON.START &&
+        hour < AUTHORIZED_TIME_SLOTS.AFTERNOON.END)
+    );
+  }
+
+  /**
+   * Calcule le délai avant un rendez-vous en heures
+   * @param scheduledAt Date du rendez-vous
+   * @returns Nombre d'heures avant le rendez-vous
+   */
+  private calculateHoursUntilAppointment(scheduledAt: Date): number {
+    const now = new Date();
+    const timeDifference = scheduledAt.getTime() - now.getTime();
+    return timeDifference / (1000 * 60 * 60);
+  }
+
+  /**
+   * Génère un token aléatoire
+   * @returns Token de 26 caractères
+   */
   private generateToken(): string {
     return (
       Math.random().toString(36).substring(2, 15) +
