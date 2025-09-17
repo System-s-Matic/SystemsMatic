@@ -11,6 +11,12 @@ import {
   getUserTimezone,
   getUserTimezoneDisplayName,
 } from "../lib/date-utils";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 import "../app/styles/appointment-form.css";
 import "../app/styles/native-datetime-picker.css";
 
@@ -63,8 +69,14 @@ export default function AppointmentForm({ onSubmit }: AppointmentFormProps) {
       const hours = selectedDateTime.getHours().toString().padStart(2, "0");
       const minutes = selectedDateTime.getMinutes().toString().padStart(2, "0");
 
+      // Créer la date locale et la convertir en UTC pour l'envoi
       const localISOString = `${year}-${month}-${day}T${hours}:${minutes}:00.000`;
-      setValue("requestedAt", localISOString);
+      const userTimezone = getUserTimezone();
+      const utcISOString = dayjs
+        .tz(localISOString, userTimezone)
+        .utc()
+        .toISOString();
+      setValue("requestedAt", utcISOString);
     }
   }, [selectedDateTime, setValue]);
 

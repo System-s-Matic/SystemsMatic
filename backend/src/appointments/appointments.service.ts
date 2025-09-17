@@ -62,21 +62,20 @@ export class AppointmentsService {
     const confirmationToken = this.generateToken();
     const cancellationToken = this.generateToken();
 
-    // Traiter requestedAt comme une heure dans la timezone de l'utilisateur
+    // Traiter requestedAt comme une date UTC déjà convertie par le frontend
     let processedRequestedAt: Date;
 
     if (typeof requestedAt === 'string') {
-      // Utiliser la timezone fournie par l'utilisateur
-      const userTimezone = timezone || GUADELOUPE_TIMEZONE;
-      const userTime = dayjs.tz(requestedAt, userTimezone);
+      // La date est déjà en UTC, on la traite directement
+      const utcTime = dayjs.utc(requestedAt);
 
       // Vérifier que la date est valide
-      if (!userTime.isValid()) {
+      if (!utcTime.isValid()) {
         throw new BadRequestException('Date invalide reçue');
       }
 
       // Convertir en Date JavaScript (sera stockée en UTC dans la BDD)
-      processedRequestedAt = userTime.toDate();
+      processedRequestedAt = utcTime.toDate();
     } else {
       processedRequestedAt = requestedAt;
     }
