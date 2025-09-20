@@ -83,10 +83,10 @@ export class QuotesService {
         
         <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
           <h3 style="color: #1e293b; margin-top: 0;">Informations du client</h3>
-          <p><strong>Nom :</strong> ${quoteDto.firstName} ${quoteDto.lastName}</p>
-          <p><strong>Email :</strong> ${quoteDto.email}</p>
-          ${quoteDto.phone ? `<p><strong>Téléphone :</strong> ${quoteDto.phone}</p>` : ''}
-          <p><strong>Accepte d'être recontacté par téléphone :</strong> ${quoteDto.acceptPhone ? 'Oui' : 'Non'}</p>
+          <p><strong>Nom :</strong><br>${quoteDto.firstName} ${quoteDto.lastName}</p>
+          <p><strong>Email :</strong><br>${quoteDto.email}</p>
+          ${quoteDto.phone ? `<p><strong>Téléphone :</strong><br>${quoteDto.phone}</p>` : ''}
+          <p><strong>Accepte d'être recontacté par téléphone :</strong><br>${quoteDto.acceptPhone ? 'Oui' : 'Non'}</p>
         </div>
         
         <div style="background: #ffffff; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
@@ -138,27 +138,27 @@ export class QuotesService {
     const subject = 'Confirmation de réception - Demande de devis SystemsMatic';
 
     const html = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <div style="text-align: center; padding: 20px; background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: white; border-radius: 8px 8px 0 0;">
+      <div style="font-family: Arial, sans-serif; max-width: 700px; margin: 0 auto;">
+        <div style="text-align: center; padding: 10px; background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: white; border-radius: 8px 8px 0 0;">
           <h1 style="margin: 0; font-size: 24px;">SystemsMatic</h1>
         </div>
         
-        <div style="padding: 30px; background: #ffffff; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 8px 8px;">
+        <div style="padding: 10px; background: #ffffff; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 8px 8px;">
           <h2 style="color: #1e293b; margin-top: 0;">Bonjour ${quoteDto.firstName},</h2>
           
-          <p style="color: #4b5563; line-height: 1.6;">
+          <p style="color: #4b5563; line-height: 1.6; padding: 20px;">
             Nous avons bien reçu votre demande de devis et nous vous en remercions. 
             Notre équipe va l'étudier attentivement et vous recontacter rapidement.
           </p>
           
-          <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
+          <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin: 25px 0;">
             <h3 style="color: #1e293b; margin-top: 0;">Récapitulatif de votre demande</h3>
-            <p><strong>Email :</strong> ${quoteDto.email}</p>
-            ${quoteDto.phone ? `<p><strong>Téléphone :</strong> ${quoteDto.phone}</p>` : ''}
+            <p><strong>Email :</strong><br>${quoteDto.email}</p>
+            ${quoteDto.phone ? `<p><strong>Téléphone :</strong><br>${quoteDto.phone}</p>` : ''}
             ${
               quoteDto.acceptPhone
-                ? '<p style="color: #059669;"><strong>✓</strong> Vous acceptez d\'être recontacté par téléphone</p>'
-                : '<p style="color: #dc2626;"><strong>✗</strong> Vous préférez être contacté par email uniquement</p>'
+                ? '<p style="color: #059669;"><strong>✓</strong><br>Vous acceptez d\'être recontacté par téléphone</p>'
+                : '<p style="color: #dc2626;"><strong>✗</strong><br>Vous préférez être contacté par email uniquement</p>'
             }
           </div>
           

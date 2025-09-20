@@ -123,34 +123,51 @@ export class MailService {
     );
 
     const html = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #2563eb; margin-top: 0;">Demande de rendez-vous reçue ✅</h2>
-        
-        <p>Bonjour <strong>${contact.firstName}</strong>,</p>
-        
-        <p>Nous avons bien reçu votre demande de rendez-vous. Notre équipe va examiner votre demande et vous recontacter rapidement pour confirmer la date et l'heure.</p>
-        
-        <div style="background-color: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
-          <h3 style="margin-top: 0; color: #374151;">📋 Détails de votre demande</h3>
-          <p><strong>Date souhaitée :</strong> ${requestedDate}</p>
-          <p><strong>Motif :</strong> ${appointment.reason ?? 'Non spécifié'}</p>
-          ${appointment.reasonOther ? `<p><strong>Précision :</strong> ${appointment.reasonOther}</p>` : ''}
-          ${appointment.message ? `<p><strong>Message :</strong> ${appointment.message}</p>` : ''}
+      <div style="font-family: Arial, sans-serif; max-width: 700px; margin: 0 auto;">
+        <div style="text-align: center; padding: 10px; background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: white; border-radius: 8px 8px 0 0;">
+          <h1 style="margin: 0; font-size: 24px;">SystemsMatic</h1>
         </div>
         
-        <p style="margin-top: 30px;">
-          <a href="${cancelUrl}" style="color: #dc2626; text-decoration: none; font-weight: bold;">
-            🚫 Annuler cette demande
-          </a>
-        </p>
-        
-        <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
-        <div style="display: flex; align-items: center; font-size: 14px; color: #6b7280;">
-          <img src="${EMAIL_CONFIG.LOGO_URL}" alt="System's Matic" style="width: 40px; height: auto; margin-right: 10px;">
-          <div>
-            <strong>System's Matic</strong> - Service de rendez-vous<br>
-            Cet email a été envoyé automatiquement, merci de ne pas y répondre.
+        <div style="padding: 10px; background: #ffffff; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 8px 8px;">
+          <h2 style="color: #1e293b; margin-top: 0;">Bonjour ${contact.firstName},</h2>
+          
+          <p style="color: #4b5563; line-height: 1.6; padding: 20px;">
+            Nous avons bien reçu votre demande de rendez-vous et nous vous en remercions. 
+            Notre équipe va l'examiner attentivement et vous recontacter rapidement pour confirmer la date et l'heure.
+          </p>
+          
+          <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin: 25px 0;">
+            <h3 style="color: #1e293b; margin-top: 0;">Récapitulatif de votre demande</h3>
+            <p><strong>Date souhaitée :</strong><br>${requestedDate}</p>
+            <p><strong>Motif :</strong><br>${appointment.reason ?? 'Non spécifié'}</p>
+            ${appointment.reasonOther ? `<p><strong>Précision :</strong><br>${appointment.reasonOther}</p>` : ''}
+            ${appointment.message ? `<p style="white-space: pre-wrap; line-height: 1.6; color: #4b5563;"><strong>Message :</strong><br>${appointment.message}</p>` : ''}
           </div>
+          
+          <div style="margin-top: 30px; padding: 20px; background: #dbeafe; border-radius: 8px; text-align: center;">
+            <h3 style="color: #1e40af; margin-top: 0;">Prochaines étapes</h3>
+            <p style="color: #1e40af; margin: 0; line-height: 1.6;">
+              📞 Nous vous contacterons sous 24h<br>
+              📅 Confirmation de la date et heure<br>
+              ✅ Validation de votre rendez-vous<br>
+              📋 Préparation de l'intervention
+            </p>
+          </div>
+          
+          <p style="margin-top: 30px; text-align: center;">
+            <a href="${cancelUrl}" style="color: #dc2626; text-decoration: none; font-weight: bold;">
+              🚫 Annuler cette demande
+            </a>
+          </p>
+          
+          <p style="color: #6b7280; font-size: 14px; margin-top: 30px; text-align: center;">
+            En cas de question urgente, n'hésitez pas à nous contacter directement.
+          </p>
+        </div>
+        
+        <div style="text-align: center; padding: 20px; color: #6b7280; font-size: 12px;">
+          <p>SystemsMatic</p>
+          <p>Cet email a été envoyé automatiquement, merci de ne pas y répondre directement.</p>
         </div>
       </div>
     `;
@@ -177,41 +194,48 @@ export class MailService {
     );
 
     const html = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #059669; margin-top: 0;">Rendez-vous confirmé 🎉</h2>
-        
-        <p>Bonjour <strong>${appointment.contact.firstName}</strong>,</p>
-        
-        <p>Excellente nouvelle ! Votre rendez-vous a été confirmé.</p>
-        
-        <div style="background-color: #ecfdf5; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #059669;">
-          <h3 style="margin-top: 0; color: #065f46;">📅 Détails du rendez-vous</h3>
-          <p style="font-size: 18px; font-weight: bold; color: #065f46;">
-            ${scheduledDate}
-          </p>
-          ${appointment.reason ? `<p><strong>Motif :</strong> ${appointment.reason}</p>` : ''}
+      <div style="font-family: Arial, sans-serif; max-width: 700px; margin: 0 auto;">
+        <div style="text-align: center; padding: 10px; background: linear-gradient(135deg, #059669 0%, #047857 100%); color: white; border-radius: 8px 8px 0 0;">
+          <h1 style="margin: 0; font-size: 24px;">SystemsMatic</h1>
         </div>
         
-        <div style="background-color: #fef3c7; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
-          <p style="margin: 0; color: #92400e;">
-            <strong>⚠️ Important :</strong> Vous ne pouvez annuler ce rendez-vous que jusqu'à 24h avant l'heure prévue. 
-            Passé ce délai, veuillez nous contacter directement.
+        <div style="padding: 10px; background: #ffffff; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 8px 8px;">
+          <h2 style="color: #1e293b; margin-top: 0;">Bonjour ${appointment.contact.firstName},</h2>
+          
+          <p style="color: #4b5563; line-height: 1.6; padding: 20px;">
+            Excellente nouvelle ! Votre rendez-vous a été confirmé.
           </p>
-        </div>
-        
-        <p style="margin-top: 30px;">
-          <a href="${cancelUrl}" style="color: #dc2626; text-decoration: none; font-weight: bold;">
-            🚫 Annuler ce rendez-vous
-          </a>
-        </p>
-        
-        <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
-        <div style="display: flex; align-items: center; font-size: 14px; color: #6b7280;">
-          <img src="${EMAIL_CONFIG.LOGO_URL}" alt="System's Matic" style="width: 40px; height: auto; margin-right: 10px;">
-          <div>
-            <strong>System's Matic</strong> - Service de rendez-vous<br>
-            Cet email a été envoyé automatiquement, merci de ne pas y répondre.
+          
+          <div style="background: #ecfdf5; padding: 20px; border-radius: 8px; margin: 25px 0; border-left: 4px solid #059669;">
+            <h3 style="color: #065f46; margin-top: 0;">📅 Détails du rendez-vous</h3>
+            <p style="font-size: 18px; font-weight: bold; color: #065f46;">
+              ${scheduledDate}
+            </p>
+            ${appointment.reason ? `<p style="color: #4b5563;"><strong>Motif :</strong><br>${appointment.reason}</p>` : ''}
           </div>
+          
+          <div style="background: #fef3c7; padding: 20px; border-radius: 8px; margin: 25px 0; border-left: 4px solid #f59e0b;">
+            <h3 style="color: #92400e; margin-top: 0;">⚠️ Important</h3>
+            <p style="color: #92400e; margin: 0; line-height: 1.6;">
+              Vous ne pouvez annuler ce rendez-vous que jusqu'à 24h avant l'heure prévue. 
+              Passé ce délai, veuillez nous contacter directement.
+            </p>
+          </div>
+          
+          <p style="margin-top: 30px; text-align: center;">
+            <a href="${cancelUrl}" style="color: #dc2626; text-decoration: none; font-weight: bold;">
+              🚫 Annuler ce rendez-vous
+            </a>
+          </p>
+          
+          <p style="color: #6b7280; font-size: 14px; margin-top: 30px; text-align: center;">
+            En cas de question urgente, n'hésitez pas à nous contacter directement.
+          </p>
+        </div>
+        
+        <div style="text-align: center; padding: 20px; color: #6b7280; font-size: 12px;">
+          <p>SystemsMatic</p>
+          <p>Cet email a été envoyé automatiquement, merci de ne pas y répondre directement.</p>
         </div>
       </div>
     `;
@@ -228,33 +252,49 @@ export class MailService {
     );
 
     const html = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #dc2626; margin-top: 0;">Rendez-vous annulé ❌</h2>
+      <div style="font-family: Arial, sans-serif; max-width: 700px; margin: 0 auto;">
+        <div style="text-align: center; padding: 10px; background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); color: white; border-radius: 8px 8px 0 0;">
+          <h1 style="margin: 0; font-size: 24px;">SystemsMatic</h1>
+        </div>
         
-        <p>Bonjour <strong>${appt.contact.firstName}</strong>,</p>
-        
-        <p>Votre rendez-vous ${cancelledDate ? `du <strong>${cancelledDate}</strong>` : ''} a bien été annulé.</p>
-        
-        <div style="background-color: #fef2f2; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #dc2626;">
-          <p style="margin: 0; color: #991b1b;">
-            <strong>✅ Confirmation :</strong> Votre rendez-vous a été annulé avec succès. 
-            Vous pouvez reprendre un nouveau rendez-vous à tout moment si nécessaire.
+        <div style="padding: 10px; background: #ffffff; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 8px 8px;">
+          <h2 style="color: #1e293b; margin-top: 0;">Bonjour ${appt.contact.firstName},</h2>
+          
+          <p style="color: #4b5563; line-height: 1.6; padding: 20px;">
+            Votre rendez-vous ${cancelledDate ? `du <strong>${cancelledDate}</strong>` : ''} a bien été annulé.
+          </p>
+          
+          <div style="background: #fef2f2; padding: 20px; border-radius: 8px; margin: 25px 0; border-left: 4px solid #dc2626;">
+            <h3 style="color: #991b1b; margin-top: 0;">✅ Confirmation</h3>
+            <p style="color: #991b1b; margin: 0; line-height: 1.6;">
+              Votre rendez-vous a été annulé avec succès. 
+              Vous pouvez reprendre un nouveau rendez-vous à tout moment si nécessaire.
+            </p>
+          </div>
+          
+          <div style="margin-top: 30px; padding: 20px; background: #dbeafe; border-radius: 8px; text-align: center;">
+            <h3 style="color: #1e40af; margin-top: 0;">Nouveau rendez-vous</h3>
+            <p style="color: #1e40af; margin: 0; line-height: 1.6;">
+              📅 Prendre un nouveau rendez-vous<br>
+              📞 Nous contacter directement<br>
+              💬 Demander un devis personnalisé
+            </p>
+          </div>
+          
+          <p style="margin-top: 30px; text-align: center;">
+            <a href="${EMAIL_CONFIG.BASE_URL}" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
+              📅 Prendre un nouveau rendez-vous
+            </a>
+          </p>
+          
+          <p style="color: #6b7280; font-size: 14px; margin-top: 30px; text-align: center;">
+            En cas de question urgente, n'hésitez pas à nous contacter directement.
           </p>
         </div>
         
-        <p style="margin-top: 30px;">
-          <a href="${EMAIL_CONFIG.BASE_URL}" style="color: #2563eb; text-decoration: none; font-weight: bold;">
-            📅 Prendre un nouveau rendez-vous
-          </a>
-        </p>
-        
-        <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
-        <div style="display: flex; align-items: center; font-size: 14px; color: #6b7280;">
-          <img src="${EMAIL_CONFIG.LOGO_URL}" alt="System's Matic" style="width: 40px; height: auto; margin-right: 10px;">
-          <div>
-            <strong>System's Matic</strong> - Service de rendez-vous<br>
-            Cet email a été envoyé automatiquement, merci de ne pas y répondre.
-          </div>
+        <div style="text-align: center; padding: 20px; color: #6b7280; font-size: 12px;">
+          <p>SystemsMatic</p>
+          <p>Cet email a été envoyé automatiquement, merci de ne pas y répondre directement.</p>
         </div>
       </div>
     `;
@@ -275,40 +315,47 @@ export class MailService {
     );
 
     const html = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #f59e0b; margin-top: 0;">Rappel : votre rendez-vous approche ⏰</h2>
-        
-        <p>Bonjour <strong>${appt.contact.firstName}</strong>,</p>
-        
-        <p>Petit rappel concernant votre rendez-vous qui approche !</p>
-        
-        <div style="background-color: #fffbeb; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
-          <h3 style="margin-top: 0; color: #92400e;">📅 Votre rendez-vous</h3>
-          <p style="font-size: 18px; font-weight: bold; color: #92400e;">
-            ${scheduledDate}
-          </p>
-          ${appt.reason ? `<p><strong>Motif :</strong> ${appt.reason}</p>` : ''}
+      <div style="font-family: Arial, sans-serif; max-width: 700px; margin: 0 auto;">
+        <div style="text-align: center; padding: 10px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; border-radius: 8px 8px 0 0;">
+          <h1 style="margin: 0; font-size: 24px;">SystemsMatic</h1>
         </div>
         
-        <div style="background-color: #ecfeff; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #06b6d4;">
-          <p style="margin: 0; color: #155e75;">
-            <strong>ℹ️ Rappel :</strong> Si vous devez annuler ce rendez-vous, pensez à le faire au moins 24h à l'avance.
+        <div style="padding: 10px; background: #ffffff; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 8px 8px;">
+          <h2 style="color: #1e293b; margin-top: 0;">Bonjour ${appt.contact.firstName},</h2>
+          
+          <p style="color: #4b5563; line-height: 1.6; padding: 20px;">
+            Petit rappel concernant votre rendez-vous qui approche !
           </p>
-        </div>
-        
-        <p style="margin-top: 30px;">
-          <a href="${cancelUrl}" style="color: #dc2626; text-decoration: none; font-weight: bold;">
-            🚫 Annuler ce rendez-vous
-          </a>
-        </p>
-        
-        <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
-        <div style="display: flex; align-items: center; font-size: 14px; color: #6b7280;">
-          <img src="${EMAIL_CONFIG.LOGO_URL}" alt="System's Matic" style="width: 40px; height: auto; margin-right: 10px;">
-          <div>
-            <strong>System's Matic</strong> - Service de rendez-vous<br>
-            Cet email a été envoyé automatiquement, merci de ne pas y répondre.
+          
+          <div style="background: #fffbeb; padding: 20px; border-radius: 8px; margin: 25px 0; border-left: 4px solid #f59e0b;">
+            <h3 style="color: #92400e; margin-top: 0;">📅 Votre rendez-vous</h3>
+            <p style="font-size: 18px; font-weight: bold; color: #92400e;">
+              ${scheduledDate}
+            </p>
+            ${appt.reason ? `<p style="color: #4b5563;"><strong>Motif :</strong><br>${appt.reason}</p>` : ''}
           </div>
+          
+          <div style="background: #ecfeff; padding: 20px; border-radius: 8px; margin: 25px 0; border-left: 4px solid #06b6d4;">
+            <h3 style="color: #155e75; margin-top: 0;">ℹ️ Rappel</h3>
+            <p style="color: #155e75; margin: 0; line-height: 1.6;">
+              Si vous devez annuler ce rendez-vous, pensez à le faire au moins 24h à l'avance.
+            </p>
+          </div>
+          
+          <p style="margin-top: 30px; text-align: center;">
+            <a href="${cancelUrl}" style="color: #dc2626; text-decoration: none; font-weight: bold;">
+              🚫 Annuler ce rendez-vous
+            </a>
+          </p>
+          
+          <p style="color: #6b7280; font-size: 14px; margin-top: 30px; text-align: center;">
+            En cas de question urgente, n'hésitez pas à nous contacter directement.
+          </p>
+        </div>
+        
+        <div style="text-align: center; padding: 20px; color: #6b7280; font-size: 12px;">
+          <p>SystemsMatic</p>
+          <p>Cet email a été envoyé automatiquement, merci de ne pas y répondre directement.</p>
         </div>
       </div>
     `;
@@ -338,44 +385,51 @@ export class MailService {
     );
 
     const html = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #7c3aed; margin-top: 0;">Proposition de reprogrammation 🔄</h2>
+      <div style="font-family: Arial, sans-serif; max-width: 700px; margin: 0 auto;">
+        <div style="text-align: center; padding: 10px; background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); color: white; border-radius: 8px 8px 0 0;">
+          <h1 style="margin: 0; font-size: 24px;">SystemsMatic</h1>
+        </div>
         
-        <p>Bonjour <strong>${appt.contact.firstName}</strong>,</p>
-        
-        <p>Nous vous proposons de reprogrammer votre rendez-vous à une nouvelle date qui pourrait mieux vous convenir.</p>
-        
-        <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #7c3aed;">
-          <h3 style="margin-top: 0; color: #5b21b6;">📅 Nouvelle date proposée</h3>
-          <p style="font-size: 18px; font-weight: bold; color: #5b21b6;">
-            ${scheduledDate}
+        <div style="padding: 10px; background: #ffffff; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 8px 8px;">
+          <h2 style="color: #1e293b; margin-top: 0;">Bonjour ${appt.contact.firstName},</h2>
+          
+          <p style="color: #4b5563; line-height: 1.6; padding: 20px;">
+            Nous vous proposons de reprogrammer votre rendez-vous à une nouvelle date qui pourrait mieux vous convenir.
           </p>
-          ${appt.reason ? `<p><strong>Motif :</strong> ${appt.reason}</p>` : ''}
-        </div>
-        
-        <div style="background-color: #f0f9ff; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #0ea5e9;">
-          <p style="margin: 0; color: #0c4a6e;">
-            <strong>ℹ️ À noter :</strong> Si vous refusez cette proposition, vous devrez prendre un nouveau rendez-vous manuellement depuis notre site.
-          </p>
-        </div>
-        
-        <div style="text-align: center; margin: 30px 0;">
-          <a href="${confirmUrl}" style="background-color: #059669; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; margin: 0 10px; display: inline-block;">
-            ✅ Accepter cette date
-          </a>
-          <br><br>
-          <a href="${cancelUrl}" style="color: #dc2626; text-decoration: none; font-weight: bold;">
-            ❌ Refuser et annuler
-          </a>
-        </div>
-        
-        <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
-        <div style="display: flex; align-items: center; font-size: 14px; color: #6b7280;">
-          <img src="${EMAIL_CONFIG.LOGO_URL}" alt="System's Matic" style="width: 40px; height: auto; margin-right: 10px;">
-          <div>
-            <strong>System's Matic</strong> - Service de rendez-vous<br>
-            Cet email a été envoyé automatiquement, merci de ne pas y répondre.
+          
+          <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 25px 0; border-left: 4px solid #7c3aed;">
+            <h3 style="color: #5b21b6; margin-top: 0;">📅 Nouvelle date proposée</h3>
+            <p style="font-size: 18px; font-weight: bold; color: #5b21b6;">
+              ${scheduledDate}
+            </p>
+            ${appt.reason ? `<p style="color: #4b5563;"><strong>Motif :</strong><br>${appt.reason}</p>` : ''}
           </div>
+          
+          <div style="background: #f0f9ff; padding: 20px; border-radius: 8px; margin: 25px 0; border-left: 4px solid #0ea5e9;">
+            <h3 style="color: #0c4a6e; margin-top: 0;">ℹ️ À noter</h3>
+            <p style="color: #0c4a6e; margin: 0; line-height: 1.6;">
+              Si vous refusez cette proposition, vous devrez prendre un nouveau rendez-vous manuellement depuis notre site.
+            </p>
+          </div>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${confirmUrl}" style="background-color: #059669; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; margin: 0 10px; display: inline-block;">
+              ✅ Accepter cette date
+            </a>
+            <br><br>
+            <a href="${cancelUrl}" style="color: #dc2626; text-decoration: none; font-weight: bold;">
+              ❌ Refuser et annuler
+            </a>
+          </div>
+          
+          <p style="color: #6b7280; font-size: 14px; margin-top: 30px; text-align: center;">
+            En cas de question urgente, n'hésitez pas à nous contacter directement.
+          </p>
+        </div>
+        
+        <div style="text-align: center; padding: 20px; color: #6b7280; font-size: 12px;">
+          <p>SystemsMatic</p>
+          <p>Cet email a été envoyé automatiquement, merci de ne pas y répondre directement.</p>
         </div>
       </div>
     `;
@@ -410,17 +464,17 @@ export class MailService {
         
         <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
           <h3 style="color: #1e293b; margin-top: 0;">Informations du client</h3>
-          <p><strong>Nom :</strong> ${contact.firstName} ${contact.lastName}</p>
-          <p><strong>Email :</strong> ${contact.email}</p>
-          ${contact.phone ? `<p><strong>Téléphone :</strong> ${contact.phone}</p>` : ''}
+          <p><strong>Nom :</strong><br>${contact.firstName} ${contact.lastName}</p>
+          <p><strong>Email :</strong><br>${contact.email}</p>
+          ${contact.phone ? `<p><strong>Téléphone :</strong><br>${contact.phone}</p>` : ''}
         </div>
         
         <div style="background: #ffffff; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
           <h3 style="color: #1e293b; margin-top: 0;">Détails de la demande</h3>
-          <p><strong>Date souhaitée :</strong> ${requestedDate}</p>
-          <p><strong>Motif :</strong> ${appointment.reason ?? 'Non spécifié'}</p>
-          ${appointment.reasonOther ? `<p><strong>Précision :</strong> ${appointment.reasonOther}</p>` : ''}
-          ${appointment.message ? `<p><strong>Message :</strong> ${appointment.message}</p>` : ''}
+          <p><strong>Date souhaitée :</strong><br>${requestedDate}</p>
+          <p><strong>Motif :</strong><br>${appointment.reason ?? 'Non spécifié'}</p>
+          ${appointment.reasonOther ? `<p><strong>Précision :</strong><br>${appointment.reasonOther}</p>` : ''}
+          ${appointment.message ? `<p style="white-space: pre-wrap; line-height: 1.6;"><strong>Message :</strong><br>${appointment.message}</p>` : ''}
         </div>
         
         <div style="margin-top: 20px; padding: 15px; background: #dbeafe; border-radius: 8px;">
