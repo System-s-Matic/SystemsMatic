@@ -2,16 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { backofficeApi, Quote, QuoteUpdate } from "@/lib/backoffice-api";
-import { authApi, LoginData } from "@/lib/auth-api";
-import {
-  Appointment,
-  AppointmentStatus,
-  AppointmentReason,
-} from "@/types/appointment";
-import {
-  formatGuadeloupeDateTime,
-  formatLocalStoredDateTime,
-} from "@/lib/date-utils";
+import { authApi } from "@/lib/auth-api";
+import { Appointment, AppointmentStatus } from "@/types/appointment";
+import { formatGuadeloupeDateTime } from "@/lib/date-utils";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
@@ -49,6 +42,11 @@ export default function AdminPage() {
   const [quotesFilter, setQuotesFilter] = useState<string>("");
   const [editingQuote, setEditingQuote] = useState<Quote | null>(null);
   const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
+
+  // États pour le rafraîchissement automatique
+  const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [timeUntilNextRefresh, setTimeUntilNextRefresh] = useState(300); // 5 minutes en secondes
 
   // Vérifier l'authentification au chargement
   useEffect(() => {
@@ -107,6 +105,41 @@ export default function AdminPage() {
       }
     }
   }, [filter, quotesFilter, isAuthenticated, activeTab]);
+
+  // Rafraîchissement automatique toutes les 5 minutes
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const interval = setInterval(() => {
+      if (activeTab === "appointments") {
+        fetchAppointments();
+        fetchStats();
+      } else {
+        fetchQuotes();
+        fetchQuotesStats();
+      }
+      setLastRefresh(new Date());
+      setTimeUntilNextRefresh(300); // Reset à 5 minutes
+    }, 5 * 60 * 1000); // 5 minutes
+
+    return () => clearInterval(interval);
+  }, [isAuthenticated, activeTab, filter, quotesFilter]);
+
+  // Compte à rebours pour le prochain rafraîchissement
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const countdownInterval = setInterval(() => {
+      setTimeUntilNextRefresh((prev) => {
+        if (prev <= 1) {
+          return 300; // Reset à 5 minutes quand on arrive à 0
+        }
+        return prev - 1;
+      });
+    }, 1000); // Mise à jour chaque seconde
+
+    return () => clearInterval(countdownInterval);
+  }, [isAuthenticated]);
 
   const fetchAppointments = async () => {
     try {
@@ -198,6 +231,9 @@ export default function AdminPage() {
       setQuotes([]);
       setStats(null);
       setQuotesStats(null);
+      setLastRefresh(new Date());
+      setTimeUntilNextRefresh(300);
+      setIsRefreshing(false);
       showSuccess("Déconnexion réussie");
     } catch (error) {
       console.error("Erreur lors de la déconnexion:", error);
@@ -208,6 +244,9 @@ export default function AdminPage() {
       setQuotes([]);
       setStats(null);
       setQuotesStats(null);
+      setLastRefresh(new Date());
+      setTimeUntilNextRefresh(300);
+      setIsRefreshing(false);
       showError("Erreur lors de la déconnexion");
     }
   };
@@ -271,6 +310,35 @@ export default function AdminPage() {
     } catch (error) {
       console.error("Erreur lors de la mise à jour du devis:", error);
       showError("Erreur lors de la mise à jour du devis");
+    }
+  };
+
+  // Fonction pour formater le temps restant
+  const formatTimeRemaining = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
+  };
+
+  // Fonction de rafraîchissement manuel
+  const handleManualRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      if (activeTab === "appointments") {
+        await fetchAppointments();
+        await fetchStats();
+      } else {
+        await fetchQuotes();
+        await fetchQuotesStats();
+      }
+      setLastRefresh(new Date());
+      setTimeUntilNextRefresh(300); // Reset le compte à rebours
+      showSuccess("Données rafraîchies avec succès");
+    } catch (error) {
+      console.error("Erreur lors du rafraîchissement:", error);
+      showError("Erreur lors du rafraîchissement des données");
+    } finally {
+      setIsRefreshing(false);
     }
   };
 
@@ -454,36 +522,66 @@ export default function AdminPage() {
       </div>
 
       <div className="admin-filters">
-        {activeTab === "appointments" ? (
-          <select
-            value={filter}
-            onChange={(e) =>
-              setFilter(e.target.value as AppointmentStatus | "ALL")
-            }
-            className="admin-filter-select"
-          >
-            <option value="ALL">Tous les statuts</option>
-            <option value={AppointmentStatus.PENDING}>En attente</option>
-            <option value={AppointmentStatus.CONFIRMED}>Confirmé</option>
-            <option value={AppointmentStatus.CANCELLED}>Annulé</option>
-            <option value={AppointmentStatus.REJECTED}>Rejeté</option>
-            <option value={AppointmentStatus.COMPLETED}>Terminé</option>
-          </select>
-        ) : (
-          <select
-            value={quotesFilter}
-            onChange={(e) => setQuotesFilter(e.target.value)}
-            className="admin-filter-select"
-          >
-            <option value="">Tous les statuts</option>
-            <option value="PENDING">En attente</option>
-            <option value="PROCESSING">En cours</option>
-            <option value="SENT">Envoyés</option>
-            <option value="ACCEPTED">Acceptés</option>
-            <option value="REJECTED">Refusés</option>
-            <option value="EXPIRED">Expirés</option>
-          </select>
-        )}
+        <div className="admin-filters-left">
+          {activeTab === "appointments" ? (
+            <select
+              value={filter}
+              onChange={(e) =>
+                setFilter(e.target.value as AppointmentStatus | "ALL")
+              }
+              className="admin-filter-select"
+            >
+              <option value="ALL">Tous les statuts</option>
+              <option value={AppointmentStatus.PENDING}>En attente</option>
+              <option value={AppointmentStatus.CONFIRMED}>Confirmé</option>
+              <option value={AppointmentStatus.CANCELLED}>Annulé</option>
+              <option value={AppointmentStatus.REJECTED}>Rejeté</option>
+              <option value={AppointmentStatus.COMPLETED}>Terminé</option>
+            </select>
+          ) : (
+            <select
+              value={quotesFilter}
+              onChange={(e) => setQuotesFilter(e.target.value)}
+              className="admin-filter-select"
+            >
+              <option value="">Tous les statuts</option>
+              <option value="PENDING">En attente</option>
+              <option value="PROCESSING">En cours</option>
+              <option value="SENT">Envoyés</option>
+              <option value="ACCEPTED">Acceptés</option>
+              <option value="REJECTED">Refusés</option>
+              <option value="EXPIRED">Expirés</option>
+            </select>
+          )}
+        </div>
+
+        <div className="admin-filters-right">
+          <div className="refresh-info">
+            <span className="last-refresh">
+              Prochain rafraîchissement dans :{" "}
+              {formatTimeRemaining(timeUntilNextRefresh)}
+            </span>
+            <button
+              onClick={handleManualRefresh}
+              disabled={isRefreshing}
+              className="refresh-button"
+              title="Rafraîchir les données"
+            >
+              {isRefreshing ? (
+                <div className="refresh-spinner"></div>
+              ) : (
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  width="16"
+                  height="16"
+                >
+                  <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" />
+                </svg>
+              )}
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Statistiques dynamiques selon l'onglet */}
