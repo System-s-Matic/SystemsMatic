@@ -7,7 +7,7 @@ export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showPhone, setShowPhone] = useState(false);
 
-  const phone = "0590 38 26 38";
+  const phone = "0590 01 02 03";
   const sanitizedPhone = phone.replace(/\s/g, "");
 
   return (
