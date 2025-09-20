@@ -103,7 +103,8 @@ export class QuotesService {
     `;
 
     // Utiliser l'email admin depuis les variables d'environnement
-    const adminEmail = process.env.ADMIN_EMAIL || 'admin@systemsmatic.com';
+    const adminEmail =
+      process.env.ADMIN_EMAIL || 'kenzokerachi@hotmail.fr (dev test)';
 
     await this.mailService.sendEmail(adminEmail, subject, html);
 

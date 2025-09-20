@@ -86,6 +86,10 @@ export class AppointmentsService {
       });
 
       await this.mail.sendAppointmentRequest(appointment.contact, appointment);
+      await this.mail.sendAppointmentNotificationEmail(
+        appointment.contact,
+        appointment,
+      );
 
       return appointment;
     } catch (error) {

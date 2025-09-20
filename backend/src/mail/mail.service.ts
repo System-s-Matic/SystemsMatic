@@ -385,4 +385,56 @@ export class MailService {
       html,
     );
   }
+
+  /**
+   * Envoie un email de notification à l'admin pour une nouvelle demande de rendez-vous
+   * @param contact Informations du contact
+   * @param appointment Détails du rendez-vous demandé
+   */
+  async sendAppointmentNotificationEmail(
+    contact: Contact,
+    appointment: Appointment,
+  ): Promise<void> {
+    const requestedDate = this.formatDate(
+      appointment.requestedAt,
+      appointment.timezone,
+    );
+
+    const subject = `Nouvelle demande de rendez-vous - ${contact.firstName} ${contact.lastName}`;
+
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #2563eb; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">
+          Nouvelle demande de rendez-vous
+        </h2>
+        
+        <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
+          <h3 style="color: #1e293b; margin-top: 0;">Informations du client</h3>
+          <p><strong>Nom :</strong> ${contact.firstName} ${contact.lastName}</p>
+          <p><strong>Email :</strong> ${contact.email}</p>
+          ${contact.phone ? `<p><strong>Téléphone :</strong> ${contact.phone}</p>` : ''}
+        </div>
+        
+        <div style="background: #ffffff; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+          <h3 style="color: #1e293b; margin-top: 0;">Détails de la demande</h3>
+          <p><strong>Date souhaitée :</strong> ${requestedDate}</p>
+          <p><strong>Motif :</strong> ${appointment.reason ?? 'Non spécifié'}</p>
+          ${appointment.reasonOther ? `<p><strong>Précision :</strong> ${appointment.reasonOther}</p>` : ''}
+          ${appointment.message ? `<p><strong>Message :</strong> ${appointment.message}</p>` : ''}
+        </div>
+        
+        <div style="margin-top: 20px; padding: 15px; background: #dbeafe; border-radius: 8px;">
+          <p style="margin: 0; color: #1e40af;">
+            <strong>Action requise :</strong> Contactez le client dans les plus brefs délais pour confirmer le rendez-vous.
+          </p>
+        </div>
+      </div>
+    `;
+
+    // Utiliser l'email admin depuis les variables d'environnement
+    const adminEmail =
+      process.env.ADMIN_EMAIL || 'kenzokerachi@hotmail.fr (dev test)';
+
+    await this.send(adminEmail, subject, html);
+  }
 }
