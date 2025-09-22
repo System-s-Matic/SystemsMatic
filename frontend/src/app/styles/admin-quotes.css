@@ -1,0 +1,206 @@
+.quotes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.quote-card {
+  background: white;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.quote-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: #cbd5e1;
+}
+
+.quote-card::before {
+  content: "💰";
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  font-size: 1.2rem;
+  opacity: 0.3;
+}
+
+.quote-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.quote-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.quote-details {
+  margin-bottom: 1.5rem;
+}
+
+.quote-details p {
+  margin: 0.5rem 0;
+  color: #475569;
+  font-size: 0.9rem;
+}
+
+.quote-description {
+  background: #f8fafc;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-top: 1rem;
+  border-left: 4px solid #3b82f6;
+}
+
+.quote-description p {
+  margin: 0.5rem 0 0 0;
+  font-style: italic;
+  color: #64748b;
+}
+
+.quote-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+/* Statuts des devis */
+.quote-status-pending {
+  border-left: 4px solid #f59e0b;
+}
+
+.quote-status-processing {
+  border-left: 4px solid #3b82f6;
+}
+
+.quote-status-sent {
+  border-left: 4px solid #8b5cf6;
+}
+
+.quote-status-accepted {
+  border-left: 4px solid #10b981;
+}
+
+.quote-status-rejected {
+  border-left: 4px solid #ef4444;
+}
+
+.quote-status-expired {
+  border-left: 4px solid #6b7280;
+}
+
+/* Boutons d'action pour les devis */
+.action-button.edit {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+}
+
+.action-button.edit:hover {
+  background: #e2e8f0;
+  color: #334155;
+}
+
+.action-button.process {
+  background: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #3b82f6;
+}
+
+.action-button.process:hover {
+  background: #3b82f6;
+  color: white;
+}
+
+.action-button.send {
+  background: #e0e7ff;
+  color: #5b21b6;
+  border: 1px solid #8b5cf6;
+}
+
+.action-button.send:hover {
+  background: #8b5cf6;
+  color: white;
+}
+
+.action-button.accept {
+  background: #d1fae5;
+  color: #047857;
+  border: 1px solid #10b981;
+}
+
+.action-button.accept:hover {
+  background: #10b981;
+  color: white;
+}
+
+/* Statistiques spécifiques */
+.quotes-stats .stat-card {
+  border-left: 4px solid transparent;
+}
+
+.quotes-stats .stat-card.total {
+  border-left-color: #6366f1;
+}
+
+.quotes-stats .stat-card.pending {
+  border-left-color: #f59e0b;
+}
+
+.quotes-stats .stat-card.processing {
+  border-left-color: #3b82f6;
+}
+
+.quotes-stats .stat-card.sent {
+  border-left-color: #8b5cf6;
+}
+
+.quotes-stats .stat-card.accepted {
+  border-left-color: #10b981;
+}
+
+.quotes-stats .stat-card.conversion {
+  border-left-color: #ec4899;
+}
+
+.no-quotes {
+  text-align: center;
+  color: #6b7280;
+  font-style: italic;
+  padding: 3rem;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 2px dashed #cbd5e1;
+}
+
+/* === RESPONSIVE POUR DEVIS === */
+
+@media (max-width: 768px) {
+  .quote-card {
+    padding: 1rem;
+  }
+
+  .quote-header {
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: flex-start;
+  }
+
+  .quote-actions {
+    flex-direction: column;
+  }
+
+  .quote-actions .action-button {
+    width: 100%;
+    justify-content: center;
+  }
+}

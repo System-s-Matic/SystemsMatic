@@ -1,0 +1,384 @@
+.appointments-list {
+  padding: 1.5rem;
+}
+
+.no-appointments {
+  text-align: center;
+  color: #6b7280;
+  font-size: 1.125rem;
+  padding: 3rem 1rem;
+}
+
+.appointment-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  background: white;
+  transition: box-shadow 0.15s ease-in-out;
+}
+
+.appointment-card:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.appointment-card.status-pending {
+  border-left: 4px solid #f59e0b;
+}
+
+.appointment-card.status-confirmed {
+  border-left: 4px solid #10b981;
+}
+
+.appointment-card.status-rescheduled {
+  border-left: 4px solid #8b5cf6;
+}
+
+.appointment-card.status-cancelled {
+  border-left: 4px solid #ef4444;
+}
+
+.appointment-card.status-rejected {
+  border-left: 4px solid #6b7280;
+}
+
+.appointment-card.status-completed {
+  border-left: 4px solid #3b82f6;
+}
+
+.appointment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.appointment-header h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.status-badge.status-pending {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.status-badge.status-confirmed {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.status-badge.status-cancelled {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.status-badge.status-rejected {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.status-badge.status-completed {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+.appointment-details {
+  margin-bottom: 1.5rem;
+}
+
+.appointment-details p {
+  margin: 0.5rem 0;
+  color: #374151;
+  font-size: 0.875rem;
+}
+
+.appointment-details strong {
+  color: #111827;
+  font-weight: 500;
+}
+
+.appointment-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.action-button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+}
+
+.action-button.confirm {
+  background-color: #10b981;
+  color: white;
+}
+
+.action-button.confirm:hover {
+  background-color: #059669;
+}
+
+.action-button.reject {
+  background-color: #ef4444;
+  color: white;
+}
+
+.action-button.reject:hover {
+  background-color: #dc2626;
+}
+
+.action-button.complete {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.action-button.complete:hover {
+  background-color: #2563eb;
+}
+
+.action-button.reminder {
+  background-color: #f59e0b;
+  color: white;
+}
+
+.action-button.reminder:hover {
+  background-color: #d97706;
+}
+
+.action-button.reschedule {
+  background-color: #8b5cf6;
+  color: white;
+}
+
+.action-button.reschedule:hover {
+  background-color: #7c3aed;
+}
+
+.action-button.delete {
+  background-color: #6b7280;
+  color: white;
+}
+
+.action-button.delete:hover {
+  background-color: #4b5563;
+}
+
+/* === DATE PICKER === */
+
+.date-picker-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.date-picker-modal {
+  background: white;
+  padding: 2rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  min-width: 400px;
+}
+
+.date-picker-modal h4 {
+  margin: 0 0 1rem 0;
+  color: #111827;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.reschedule-info {
+  color: #6b7280;
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+  line-height: 1.4;
+}
+
+.date-time-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  font-size: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.date-time-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.date-picker-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.admin-datetime-picker {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  margin: 1rem 0;
+}
+
+.admin-datetime-picker .datetime-inputs {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.admin-datetime-picker .date-input-group,
+.admin-datetime-picker .time-input-group {
+  flex: 1;
+}
+
+.admin-datetime-picker label {
+  display: block;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.admin-datetime-picker .date-input,
+.admin-datetime-picker .time-select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  transition: border-color 0.2s ease-in-out;
+}
+
+.admin-datetime-picker .date-input:focus,
+.admin-datetime-picker .time-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.admin-datetime-picker .selected-datetime {
+  background: #f3f4f6;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  text-align: center;
+  font-weight: 500;
+  margin: 1rem 0;
+  border: 1px solid #e5e7eb;
+}
+
+.admin-datetime-picker .date-constraints-info {
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin: 1rem 0;
+  font-size: 0.875rem;
+}
+
+.admin-datetime-picker .date-constraints-info p {
+  margin: 0 0 0.5rem 0;
+  font-weight: 600;
+  color: #92400e;
+}
+
+.admin-datetime-picker .date-constraints-info ul {
+  margin: 0;
+  padding-left: 1.5rem;
+  color: #92400e;
+}
+
+.admin-datetime-picker .date-constraints-info li {
+  margin: 0.25rem 0;
+}
+
+.admin-datetime-picker .date-picker-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.admin-datetime-picker .action-button {
+  flex: 1;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.admin-datetime-picker .action-button.confirm {
+  background: #10b981;
+  color: white;
+}
+
+.admin-datetime-picker .action-button.confirm:hover:not(:disabled) {
+  background: #059669;
+}
+
+.admin-datetime-picker .action-button.confirm:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+.admin-datetime-picker .action-button.reject {
+  background: #ef4444;
+  color: white;
+}
+
+.admin-datetime-picker .action-button.reject:hover {
+  background: #dc2626;
+}
+
+/* === RESPONSIVE APPOINTMENTS === */
+
+@media (max-width: 768px) {
+  .appointment-actions {
+    flex-direction: column;
+  }
+
+  .action-button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .appointment-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .admin-datetime-picker .datetime-inputs {
+    flex-direction: column;
+  }
+
+  .admin-datetime-picker .date-picker-actions {
+    flex-direction: column;
+  }
+}

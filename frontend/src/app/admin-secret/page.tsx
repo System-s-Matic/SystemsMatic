@@ -10,7 +10,12 @@ import AdminLogin from "@/components/AdminLogin";
 import StatsSection from "@/components/StatsSection";
 import AppointmentsSection from "@/components/AppointmentsSection";
 import QuotesSection from "@/components/QuotesSection";
-import "@/app/styles/admin-backoffice.css";
+import "@/app/styles/admin-navigation.css";
+import "@/app/styles/admin-dashboard.css";
+import "@/app/styles/admin-layout.css";
+import "@/app/styles/admin-appointments.css";
+import "@/app/styles/admin-quotes.css";
+import "@/app/styles/admin-modals.css";
 import "@/app/styles/native-datetime-picker.css";
 
 export default function AdminPage() {

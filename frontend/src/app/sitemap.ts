@@ -3,9 +3,10 @@ import { MetadataRoute } from "next";
 export default function sitemap(): MetadataRoute.Sitemap {
   // URL dynamique selon l'environnement
   const baseUrl =
-    process.env.NEXT_PUBLIC_SITE_URL || process.env.NETLIFY_URL
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    (process.env.NETLIFY_URL
       ? `https://${process.env.NETLIFY_URL}`
-      : "https://systemsmatic.com";
+      : "https://systemsmatic.com");
 
   return [
     {

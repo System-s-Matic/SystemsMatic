@@ -1,0 +1,215 @@
+.quote-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.quote-modal-content {
+  background: white;
+  border-radius: 12px;
+  max-width: 500px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.quote-modal-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.quote-modal-header h4 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.quote-modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #64748b;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.quote-modal-close:hover {
+  background: #f1f5f9;
+}
+
+.quote-modal-body {
+  padding: 1.5rem;
+}
+
+.quote-form-group {
+  margin-bottom: 1rem;
+}
+
+.quote-form-group label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.5rem;
+}
+
+.quote-form-group input,
+.quote-form-group select,
+.quote-form-group textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  background: white;
+  color: #1f2937;
+  font-family: inherit;
+}
+
+.quote-form-group textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.quote-form-group input:focus,
+.quote-form-group select:focus,
+.quote-form-group textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.quote-form-group small {
+  display: block;
+  margin-top: 6px;
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.quote-modal-actions {
+  padding: 1.5rem;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.quote-modal-actions button {
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.quote-modal-actions button[type="submit"] {
+  background: #3b82f6;
+  color: white;
+  border: 1px solid #3b82f6;
+}
+
+.quote-modal-actions button[type="submit"]:hover {
+  background: #2563eb;
+  border-color: #2563eb;
+}
+
+.quote-modal-actions button[type="button"] {
+  background: white;
+  color: #6b7280;
+  border: 1px solid #d1d5db;
+}
+
+.quote-modal-actions button[type="button"]:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+/* === STYLES POUR LES MODALES D'ACCEPTATION/REJET === */
+
+.quote-accept-info,
+.quote-reject-info {
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.quote-accept-info p,
+.quote-reject-info p {
+  margin: 0;
+  color: #92400e;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.quote-project-summary {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 20px;
+}
+
+.quote-project-summary h5 {
+  margin: 0 0 12px 0;
+  color: #1e293b;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.quote-project-summary p {
+  margin: 0;
+  color: #4b5563;
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.accept-button {
+  background: #059669 !important;
+  color: white !important;
+  border: 1px solid #059669 !important;
+}
+
+.accept-button:hover {
+  background: #047857 !important;
+  border-color: #047857 !important;
+}
+
+.reject-button {
+  background: #dc2626 !important;
+  color: white !important;
+  border: 1px solid #dc2626 !important;
+}
+
+.reject-button:hover {
+  background: #b91c1c !important;
+  border-color: #b91c1c !important;
+}
+
+/* === RESPONSIVE MODALES === */
+
+@media (max-width: 768px) {
+  .quote-modal-actions {
+    flex-direction: column;
+  }
+
+  .quote-modal-actions button {
+    width: 100%;
+  }
+}
