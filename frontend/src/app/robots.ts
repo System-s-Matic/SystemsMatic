@@ -8,12 +8,26 @@ export default function robots(): MetadataRoute.Robots {
       ? `https://${process.env.NETLIFY_URL}`
       : "https://systemsmatic.com");
 
-  return {
-    rules: {
-      userAgent: "*",
-      allow: "/",
-      disallow: ["/admin-secret/", "/api/"],
-    },
-    sitemap: `${baseUrl}/sitemap.xml`,
-  };
+  // Bloquer l'indexation si pas de domaine personnalisé
+  const hasCustomDomain = process.env.NEXT_PUBLIC_SITE_URL;
+
+  if (hasCustomDomain) {
+    // Production avec domaine personnalisé
+    return {
+      rules: {
+        userAgent: "*",
+        allow: "/",
+        disallow: ["/admin-secret/", "/api/"],
+      },
+      sitemap: `${baseUrl}/sitemap.xml`,
+    };
+  } else {
+    // Développement (local ou Netlify sans domaine)
+    return {
+      rules: {
+        userAgent: "*",
+        disallow: "/", // Bloquer tout le site
+      },
+    };
+  }
 }

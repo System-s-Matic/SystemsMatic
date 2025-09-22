@@ -8,6 +8,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
       ? `https://${process.env.NETLIFY_URL}`
       : "https://systemsmatic.com");
 
+  // Bloquer le sitemap si pas de domaine personnalisé
+  const hasCustomDomain = process.env.NEXT_PUBLIC_SITE_URL;
+
+  if (!hasCustomDomain) {
+    // Développement (local ou Netlify sans domaine)
+    return []; // Sitemap vide
+  }
+
   return [
     {
       url: baseUrl,
