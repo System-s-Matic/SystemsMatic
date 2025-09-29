@@ -16,18 +16,17 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
     switch (variant) {
       case 'secondary':
         return {
-          backgroundColor: '#f8fafc',
-          color: '#1e293b',
-          border: '1px solid #e2e8f0',
+          backgroundColor: '#6c757d',
+          color: 'white',
         };
       case 'danger':
         return {
-          backgroundColor: '#dc2626',
+          backgroundColor: '#dc3545',
           color: 'white',
         };
       default:
         return {
-          backgroundColor: '#2563eb',
+          backgroundColor: '#007bff',
           color: 'white',
         };
     }
@@ -52,8 +51,13 @@ const buttonContainer = {
 const buttonStyle = {
   display: 'inline-block',
   padding: '12px 24px',
-  textDecoration: 'none',
   borderRadius: '6px',
-  fontWeight: 'bold',
-  fontSize: '14px',
+  textDecoration: 'none',
+  fontWeight: '600',
+  fontSize: '16px',
+  textAlign: 'center' as const,
+  transition: 'all 0.3s ease',
+  border: 'none',
+  cursor: 'pointer',
+  margin: '10px 5px',
 };

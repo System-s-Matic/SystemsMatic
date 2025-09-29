@@ -3,6 +3,7 @@ import { Text, Section } from '@react-email/components';
 import { BaseEmail } from './components/BaseEmail';
 import { InfoBox } from './components/InfoBox';
 import { ActionButton } from './components/ActionButton';
+import { commonStyles } from './styles/common';
 
 interface AppointmentConfirmationProps {
   contactName: string;
@@ -16,9 +17,9 @@ export const AppointmentConfirmation: React.FC<
 > = ({ contactName, scheduledDate, reason, cancelUrl }) => {
   return (
     <BaseEmail title="Rendez-vous confirmé">
-      <Text style={greeting}>Bonjour {contactName},</Text>
+      <Text style={commonStyles.greeting}>Bonjour {contactName},</Text>
 
-      <Text style={paragraph}>
+      <Text style={commonStyles.paragraph}>
         Excellente nouvelle ! Votre rendez-vous a été confirmé.
       </Text>
 
@@ -54,30 +55,9 @@ export const AppointmentConfirmation: React.FC<
         🚫 Annuler ce rendez-vous
       </ActionButton>
 
-      <Text style={footerNote}>
+      <Text style={commonStyles.footerNote}>
         En cas de question urgente, n'hésitez pas à nous contacter directement.
       </Text>
     </BaseEmail>
   );
-};
-
-const greeting = {
-  fontSize: '18px',
-  fontWeight: 'bold',
-  color: '#1e293b',
-  margin: '0 0 16px 0',
-};
-
-const paragraph = {
-  fontSize: '14px',
-  lineHeight: '1.6',
-  color: '#4b5563',
-  margin: '0 0 20px 0',
-};
-
-const footerNote = {
-  fontSize: '14px',
-  color: '#6b7280',
-  textAlign: 'center' as const,
-  margin: '30px 0 0 0',
 };

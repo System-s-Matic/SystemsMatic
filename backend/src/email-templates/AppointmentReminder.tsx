@@ -3,6 +3,7 @@ import { Text, Section } from '@react-email/components';
 import { BaseEmail } from './components/BaseEmail';
 import { InfoBox } from './components/InfoBox';
 import { ActionButton } from './components/ActionButton';
+import { commonStyles } from './styles/common';
 
 interface AppointmentReminderProps {
   contactName: string;
@@ -19,9 +20,9 @@ export const AppointmentReminder: React.FC<AppointmentReminderProps> = ({
 }) => {
   return (
     <BaseEmail title="Rappel : votre rendez-vous approche">
-      <Text style={greeting}>Bonjour {contactName},</Text>
+      <Text style={commonStyles.greeting}>Bonjour {contactName},</Text>
 
-      <Text style={paragraph}>
+      <Text style={commonStyles.paragraph}>
         Petit rappel concernant votre rendez-vous qui approche !
       </Text>
 
@@ -57,30 +58,9 @@ export const AppointmentReminder: React.FC<AppointmentReminderProps> = ({
         🚫 Annuler ce rendez-vous
       </ActionButton>
 
-      <Text style={footerNote}>
+      <Text style={commonStyles.footerNote}>
         En cas de question urgente, n'hésitez pas à nous contacter directement.
       </Text>
     </BaseEmail>
   );
-};
-
-const greeting = {
-  fontSize: '18px',
-  fontWeight: 'bold',
-  color: '#1e293b',
-  margin: '0 0 16px 0',
-};
-
-const paragraph = {
-  fontSize: '14px',
-  lineHeight: '1.6',
-  color: '#4b5563',
-  margin: '0 0 20px 0',
-};
-
-const footerNote = {
-  fontSize: '14px',
-  color: '#6b7280',
-  textAlign: 'center' as const,
-  margin: '30px 0 0 0',
 };

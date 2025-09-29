@@ -16,27 +16,27 @@ export const InfoBox: React.FC<InfoBoxProps> = ({
     switch (type) {
       case 'success':
         return {
-          backgroundColor: '#f0fdf4',
-          borderLeft: '4px solid #059669',
-          color: '#065f46',
+          backgroundColor: '#d4edda',
+          borderLeft: '4px solid #28a745',
+          color: '#155724',
         };
       case 'warning':
         return {
-          backgroundColor: '#fffbeb',
-          borderLeft: '4px solid #f59e0b',
-          color: '#92400e',
+          backgroundColor: '#fff3cd',
+          borderLeft: '4px solid #ffc107',
+          color: '#856404',
         };
       case 'error':
         return {
-          backgroundColor: '#fef2f2',
-          borderLeft: '4px solid #dc2626',
-          color: '#991b1b',
+          backgroundColor: '#f8d7da',
+          borderLeft: '4px solid #dc3545',
+          color: '#721c24',
         };
       default:
         return {
-          backgroundColor: '#f8fafc',
-          borderLeft: '4px solid #2563eb',
-          color: '#1e40af',
+          backgroundColor: '#d1ecf1',
+          borderLeft: '4px solid #17a2b8',
+          color: '#0c5460',
         };
     }
   };
@@ -54,9 +54,9 @@ export const InfoBox: React.FC<InfoBoxProps> = ({
 };
 
 const infoBoxStyle = {
-  padding: '20px',
-  borderRadius: '8px',
-  margin: '25px 0',
+  padding: '15px',
+  borderRadius: '6px',
+  margin: '15px 0',
 };
 
 const infoBoxTitle = {
