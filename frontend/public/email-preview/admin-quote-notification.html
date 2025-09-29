@@ -4,8 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Notification Admin - Nouveau Devis - SystemsMatic</title>
-        <link rel="stylesheet" href="styles/base.css">
-    <link rel="stylesheet" href="styles/editor.css">
+    <link rel="stylesheet" href="styles/base.css" />
+    <link rel="stylesheet" href="styles/editor.css" />
+    <link rel="stylesheet" href="styles/admin.css" />
   </head>
   <body>
     <div class="controls">
@@ -43,6 +44,7 @@
             id="contactPhone"
             value="+33 6 12 34 56 78"
             onchange="updatePreview()"
+            placeholder="Laissez vide si pas de téléphone"
           />
         </div>
         <div class="control-group">
@@ -87,53 +89,66 @@ Bonjour, nous souhaitons moderniser notre infrastructure informatique. Nous avon
           >
 <div class="email-container">
     <div class="email-header">
-        <img src="https://res.cloudinary.com/dfqpyuhyj/image/upload/v1758333945/1755694814429f_-_Ramco_tpoknd.jpg" 
-             alt="SystemsMatic" class="email-logo">
-        <div class="email-header-title">SystemsMatic</div>
+        <div class="email-header-icon">💰</div>
+        <div class="email-header-title">Nouvelle demande de devis</div>
+        <div class="email-header-subtitle">SystemsMatic</div>
     </div>
 
     <div class="email-content">
-        <div class="greeting">💰 Nouvelle demande de devis</div>
+        <div class="greeting">Bonjour Admin,</div>
         
         <div class="paragraph">
             Une nouvelle demande de devis a été soumise et nécessite votre attention.
         </div>
 
-        <div class="info-box warning">
-            <div class="info-box-title">📋 Détails de la demande</div>
-            <div class="info-box-text">
-                <p><strong>Client :</strong><br>
+        <div class="admin-info-box client">
+            <div class="admin-info-box-title">👤 Informations du client</div>
+            <div class="admin-info-box-text">
+                <p><strong>Nom :</strong><br>
                 <span id="contactNameDisplay">Jean Dupont</span></p>
                 
                 <p><strong>Email :</strong><br>
-                <span id="contactEmailDisplay">jean.dupont@example.com</span></p>
+                <a href="mailto:jean.dupont@example.com" style="color: #007bff;">
+                    <span id="contactEmailDisplay">jean.dupont@example.com</span>
+                </a></p>
                 
                 <p id="contactPhoneDisplay" style="display: none;"><strong>Téléphone :</strong><br>
-                <span id="contactPhoneText">+33 6 12 34 56 78</span></p>
+                <a href="tel:+33612345678" style="color: #007bff;">
+                    <span id="contactPhoneText">+33 6 12 34 56 78</span>
+                </a></p>
                 
-                <p id="phoneAcceptanceDisplay" style="color: #059669;">
-                    <strong>✓</strong><br>
-                    <span id="phoneAcceptanceText">Le client accepte d'être recontacté par téléphone</span>
+                <p id="phoneAcceptanceDisplay">
+                    <strong>Accepte d'être recontacté par téléphone :</strong><br>
+                    <span id="phoneAcceptanceText" style="color: #28a745; font-weight: bold;">✅ Oui</span>
                 </p>
             </div>
         </div>
 
-        <div class="info-box">
-            <div class="info-box-title">📝 Description du projet</div>
-            <div class="info-box-text" style="white-space: pre-wrap; line-height: 1.6;" id="messageDisplay">
+        <div class="admin-info-box details">
+            <div class="admin-info-box-title">💼 Description du projet</div>
+            <div class="admin-info-box-text" style="white-space: pre-wrap; line-height: 1.6;" id="messageDisplay">
                 Bonjour, nous souhaitons moderniser notre infrastructure informatique. Nous avons actuellement 20 postes de travail et 3 serveurs qui nécessitent une mise à jour. Nous aimerions également mettre en place une solution de sauvegarde cloud et améliorer notre sécurité réseau.
             </div>
         </div>
 
-        <div class="info-box info">
-            <div class="info-box-title">⚡ Action requise</div>
-            <div class="info-box-text">
-                Veuillez analyser cette demande et préparer un devis détaillé dans les plus brefs délais.
+        <div class="admin-info-box action">
+            <div class="admin-info-box-title">⚡ Action requise</div>
+            <div class="admin-info-box-text">
+                <p style="margin: 0 0 10px 0;">
+                    <strong>Contactez le client dans les plus brefs délais pour :</strong>
+                </p>
+                <ul style="margin: 0; padding-left: 20px;">
+                    <li>Analyser les besoins du projet</li>
+                    <li>Établir un devis personnalisé</li>
+                    <li>Planifier une éventuelle visite</li>
+                    <li>Proposer des solutions adaptées</li>
+                </ul>
             </div>
         </div>
 
         <div class="button-container">
-            <a href="#" class="action-button primary" id="adminButton">🔧 Accéder au backoffice</a>
+            <a href="mailto:jean.dupont@example.com?subject=Devis personnalisé - SystemsMatic" class="admin-btn admin-btn-primary">📧 Répondre au client</a>
+            <a href="tel:+33612345678" class="admin-btn admin-btn-success" id="callButton" style="display: none;">📞 Appeler le client</a>
         </div>
 
         <div class="footer-note">
@@ -192,6 +207,7 @@ Bonjour, nous souhaitons moderniser notre infrastructure informatique. Nous avon
           "#contactPhoneDisplay"
         );
         const contactPhoneText = preview.querySelector("#contactPhoneText");
+        const callButton = preview.querySelector("#callButton");
         if (contactPhone && contactPhone.trim()) {
           if (contactPhoneDisplay) contactPhoneDisplay.style.display = "block";
           if (contactPhoneText) contactPhoneText.textContent = contactPhone;
@@ -207,13 +223,21 @@ Bonjour, nous souhaitons moderniser notre infrastructure informatique. Nous avon
         );
         if (phoneAcceptanceDisplay && phoneAcceptanceText) {
           if (acceptPhone) {
-            phoneAcceptanceDisplay.style.color = "#059669";
-            phoneAcceptanceText.textContent =
-              "Le client accepte d'être recontacté par téléphone";
+            phoneAcceptanceDisplay.style.color = "#28a745";
+            phoneAcceptanceText.textContent = "✅ Oui";
           } else {
-            phoneAcceptanceDisplay.style.color = "#dc2626";
-            phoneAcceptanceText.textContent =
-              "Le client préfère être contacté par email uniquement";
+            phoneAcceptanceDisplay.style.color = "#dc3545";
+            phoneAcceptanceText.textContent = "❌ Non";
+          }
+        }
+
+        // Afficher le bouton d'appel seulement si téléphone fourni ET accepté
+        if (callButton) {
+          if (contactPhone && contactPhone.trim() && acceptPhone === "true") {
+            callButton.style.display = "inline-block";
+            callButton.href = `tel:${contactPhone}`;
+          } else {
+            callButton.style.display = "none";
           }
         }
 

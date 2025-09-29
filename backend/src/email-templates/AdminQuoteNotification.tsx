@@ -1,13 +1,9 @@
 import React from 'react';
-import {
-  Html,
-  Head,
-  Body,
-  Container,
-  Section,
-  Text,
-  Hr,
-} from '@react-email/components';
+import { Text, Section } from '@react-email/components';
+import { BaseEmailAdmin } from './components/BaseEmailAdmin';
+import { AdminInfoBox } from './components/AdminInfoBox';
+import { AdminActionButton } from './components/AdminActionButton';
+import { commonStyles } from './styles/common';
 
 interface AdminQuoteNotificationProps {
   contactName: string;
@@ -25,161 +21,91 @@ export const AdminQuoteNotification: React.FC<AdminQuoteNotificationProps> = ({
   message,
 }) => {
   return (
-    <Html>
-      <Head>
-        <title>Nouvelle demande de devis</title>
-        <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      </Head>
-      <Body style={main}>
-        <Container style={container}>
-          <Section style={header}>
-            <Text style={headerTitle}>Nouvelle demande de devis</Text>
-          </Section>
+    <BaseEmailAdmin title="Nouvelle demande de devis" type="quote">
+      <Text style={commonStyles.greeting}>Bonjour Admin,</Text>
 
-          <Section style={content}>
-            <Section style={infoSection}>
-              <Text style={sectionTitle}>Informations du client</Text>
-              <Text style={infoText}>
-                <strong>Nom :</strong>
-                <br />
-                {contactName}
-              </Text>
-              <Text style={infoText}>
-                <strong>Email :</strong>
-                <br />
-                {contactEmail}
-              </Text>
-              {contactPhone && (
-                <Text style={infoText}>
-                  <strong>Téléphone :</strong>
-                  <br />
-                  {contactPhone}
-                </Text>
-              )}
-              <Text style={infoText}>
-                <strong>Accepte d'être recontacté par téléphone :</strong>
-                <br />
-                {acceptPhone ? 'Oui' : 'Non'}
-              </Text>
-            </Section>
+      <Text style={commonStyles.paragraph}>
+        Une nouvelle demande de devis a été soumise et nécessite votre
+        attention.
+      </Text>
 
-            <Section style={detailsSection}>
-              <Text style={sectionTitle}>Description du projet</Text>
-              <Text style={{ ...infoText, whiteSpace: 'pre-wrap' }}>
-                {message}
-              </Text>
-            </Section>
+      <AdminInfoBox type="client" title="👤 Informations du client">
+        <div>
+          <p>
+            <strong>Nom :</strong>
+            <br />
+            {contactName}
+          </p>
+          <p>
+            <strong>Email :</strong>
+            <br />
+            <a href={`mailto:${contactEmail}`} style={{ color: '#007bff' }}>
+              {contactEmail}
+            </a>
+          </p>
+          {contactPhone && (
+            <p>
+              <strong>Téléphone :</strong>
+              <br />
+              <a href={`tel:${contactPhone}`} style={{ color: '#007bff' }}>
+                {contactPhone}
+              </a>
+            </p>
+          )}
+          <p>
+            <strong>Accepte d'être recontacté par téléphone :</strong>
+            <br />
+            <span
+              style={{
+                color: acceptPhone ? '#28a745' : '#dc3545',
+                fontWeight: 'bold',
+              }}
+            >
+              {acceptPhone ? '✅ Oui' : '❌ Non'}
+            </span>
+          </p>
+        </div>
+      </AdminInfoBox>
 
-            <Section style={actionSection}>
-              <Text style={actionText}>
-                <strong>Action requise :</strong> Contactez le client dans les
-                plus brefs délais pour établir un devis personnalisé.
-              </Text>
-            </Section>
-          </Section>
+      <AdminInfoBox type="details" title="💼 Description du projet">
+        <div style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6' }}>
+          {message}
+        </div>
+      </AdminInfoBox>
 
-          <Hr style={hr} />
+      <AdminInfoBox type="action" title="⚡ Action requise">
+        <div>
+          <p style={{ margin: '0 0 10px 0' }}>
+            <strong>
+              Contactez le client dans les plus brefs délais pour :
+            </strong>
+          </p>
+          <ul style={{ margin: '0', paddingLeft: '20px' }}>
+            <li>Analyser les besoins du projet</li>
+            <li>Établir un devis personnalisé</li>
+            <li>Planifier une éventuelle visite</li>
+            <li>Proposer des solutions adaptées</li>
+          </ul>
+        </div>
+      </AdminInfoBox>
 
-          <Section style={footer}>
-            <Text style={footerText}>SystemsMatic - Backoffice</Text>
-          </Section>
-        </Container>
-      </Body>
-    </Html>
+      <AdminActionButton
+        href={`mailto:${contactEmail}?subject=Devis personnalisé - SystemsMatic`}
+        variant="primary"
+      >
+        📧 Répondre au client
+      </AdminActionButton>
+
+      {contactPhone && acceptPhone && (
+        <AdminActionButton href={`tel:${contactPhone}`} variant="success">
+          📞 Appeler le client
+        </AdminActionButton>
+      )}
+
+      <Text style={commonStyles.footerNote}>
+        Cette notification a été générée automatiquement. Merci de traiter cette
+        demande rapidement.
+      </Text>
+    </BaseEmailAdmin>
   );
-};
-
-const main = {
-  backgroundColor: '#f6f9fc',
-  fontFamily:
-    '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Ubuntu,sans-serif',
-};
-
-const container = {
-  backgroundColor: '#ffffff',
-  margin: '0 auto',
-  padding: '20px 0 48px',
-  marginBottom: '64px',
-  maxWidth: '600px',
-};
-
-const header = {
-  padding: '32px 24px 0',
-  textAlign: 'center' as const,
-  background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
-  borderRadius: '8px 8px 0 0',
-  color: 'white',
-};
-
-const headerTitle = {
-  fontSize: '24px',
-  fontWeight: 'bold',
-  margin: '0 0 20px 0',
-  color: 'white',
-};
-
-const content = {
-  padding: '24px',
-  backgroundColor: '#ffffff',
-  border: '1px solid #e2e8f0',
-  borderTop: 'none',
-  borderRadius: '0 0 8px 8px',
-};
-
-const infoSection = {
-  backgroundColor: '#f8fafc',
-  padding: '20px',
-  borderRadius: '8px',
-  margin: '20px 0',
-};
-
-const detailsSection = {
-  backgroundColor: '#ffffff',
-  padding: '20px',
-  border: '1px solid #e2e8f0',
-  borderRadius: '8px',
-};
-
-const actionSection = {
-  marginTop: '20px',
-  padding: '15px',
-  backgroundColor: '#dbeafe',
-  borderRadius: '8px',
-};
-
-const sectionTitle = {
-  fontSize: '16px',
-  fontWeight: 'bold',
-  color: '#1e293b',
-  margin: '0 0 16px 0',
-};
-
-const infoText = {
-  fontSize: '14px',
-  lineHeight: '1.6',
-  color: '#4b5563',
-  margin: '0 0 12px 0',
-};
-
-const actionText = {
-  fontSize: '14px',
-  margin: '0',
-  color: '#1e40af',
-};
-
-const hr = {
-  borderColor: '#e2e8f0',
-  margin: '20px 0',
-};
-
-const footer = {
-  padding: '20px',
-  textAlign: 'center' as const,
-};
-
-const footerText = {
-  fontSize: '12px',
-  color: '#6b7280',
-  margin: '0',
 };

@@ -1,13 +1,9 @@
 import React from 'react';
-import {
-  Html,
-  Head,
-  Body,
-  Container,
-  Section,
-  Text,
-  Hr,
-} from '@react-email/components';
+import { Text, Section } from '@react-email/components';
+import { BaseEmailAdmin } from './components/BaseEmailAdmin';
+import { AdminInfoBox } from './components/AdminInfoBox';
+import { AdminActionButton } from './components/AdminActionButton';
+import { commonStyles } from './styles/common';
 
 interface AdminAppointmentNotificationProps {
   contactName: string;
@@ -31,177 +27,105 @@ export const AdminAppointmentNotification: React.FC<
   message,
 }) => {
   return (
-    <Html>
-      <Head>
-        <title>Nouvelle demande de rendez-vous</title>
-        <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      </Head>
-      <Body style={main}>
-        <Container style={container}>
-          <Section style={header}>
-            <Text style={headerTitle}>Nouvelle demande de rendez-vous</Text>
-          </Section>
+    <BaseEmailAdmin title="Nouvelle demande de rendez-vous" type="appointment">
+      <Text style={commonStyles.greeting}>Bonjour Admin,</Text>
 
-          <Section style={content}>
-            <Section style={infoSection}>
-              <Text style={sectionTitle}>Informations du client</Text>
-              <Text style={infoText}>
-                <strong>Nom :</strong>
-                <br />
-                {contactName}
-              </Text>
-              <Text style={infoText}>
-                <strong>Email :</strong>
-                <br />
-                {contactEmail}
-              </Text>
-              {contactPhone && (
-                <Text style={infoText}>
-                  <strong>Téléphone :</strong>
-                  <br />
-                  {contactPhone}
-                </Text>
-              )}
-            </Section>
+      <Text style={commonStyles.paragraph}>
+        Une nouvelle demande de rendez-vous a été soumise et nécessite votre
+        attention.
+      </Text>
 
-            <Section style={detailsSection}>
-              <Text style={sectionTitle}>Détails de la demande</Text>
-              <Text style={infoText}>
-                <strong>Date souhaitée :</strong>
-                <br />
-                {requestedDate}
-              </Text>
-              <Text style={infoText}>
-                <strong>Motif :</strong>
-                <br />
-                {reason || 'Non spécifié'}
-              </Text>
-              {reasonOther && (
-                <Text style={infoText}>
-                  <strong>Précision :</strong>
-                  <br />
-                  {reasonOther}
-                </Text>
-              )}
-              {message && (
-                <Text style={{ ...infoText, whiteSpace: 'pre-wrap' }}>
-                  <strong>Message :</strong>
-                  <br />
-                  {message}
-                </Text>
-              )}
-            </Section>
+      <AdminInfoBox type="client" title="👤 Informations du client">
+        <div>
+          <p>
+            <strong>Nom :</strong>
+            <br />
+            {contactName}
+          </p>
+          <p>
+            <strong>Email :</strong>
+            <br />
+            <a href={`mailto:${contactEmail}`} style={{ color: '#007bff' }}>
+              {contactEmail}
+            </a>
+          </p>
+          {contactPhone && (
+            <p>
+              <strong>Téléphone :</strong>
+              <br />
+              <a href={`tel:${contactPhone}`} style={{ color: '#007bff' }}>
+                {contactPhone}
+              </a>
+            </p>
+          )}
+        </div>
+      </AdminInfoBox>
 
-            <Section style={actionSection}>
-              <Text style={actionText}>
-                <strong>Action requise :</strong> Contactez le client dans les
-                plus brefs délais pour confirmer le rendez-vous.
-              </Text>
-            </Section>
-          </Section>
+      <AdminInfoBox type="details" title="📅 Détails de la demande">
+        <div>
+          <p>
+            <strong>Date souhaitée :</strong>
+            <br />
+            <span
+              style={{ fontSize: '16px', fontWeight: 'bold', color: '#333' }}
+            >
+              {requestedDate}
+            </span>
+          </p>
+          <p>
+            <strong>Motif :</strong>
+            <br />
+            {reason || 'Non spécifié'}
+          </p>
+          {reasonOther && (
+            <p>
+              <strong>Précision :</strong>
+              <br />
+              {reasonOther}
+            </p>
+          )}
+          {message && (
+            <p style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6' }}>
+              <strong>Message :</strong>
+              <br />
+              {message}
+            </p>
+          )}
+        </div>
+      </AdminInfoBox>
 
-          <Hr style={hr} />
+      <AdminInfoBox type="action" title="⚡ Action requise">
+        <div>
+          <p style={{ margin: '0 0 10px 0' }}>
+            <strong>
+              Contactez le client dans les plus brefs délais pour :
+            </strong>
+          </p>
+          <ul style={{ margin: '0', paddingLeft: '20px' }}>
+            <li>Confirmer la disponibilité</li>
+            <li>Valider le créneau horaire</li>
+            <li>Préparer l'intervention</li>
+          </ul>
+        </div>
+      </AdminInfoBox>
 
-          <Section style={footer}>
-            <Text style={footerText}>SystemsMatic - Backoffice</Text>
-          </Section>
-        </Container>
-      </Body>
-    </Html>
+      <AdminActionButton
+        href={`mailto:${contactEmail}?subject=Confirmation de votre rendez-vous`}
+        variant="primary"
+      >
+        📧 Répondre au client
+      </AdminActionButton>
+
+      {contactPhone && (
+        <AdminActionButton href={`tel:${contactPhone}`} variant="success">
+          📞 Appeler le client
+        </AdminActionButton>
+      )}
+
+      <Text style={commonStyles.footerNote}>
+        Cette notification a été générée automatiquement. Merci de traiter cette
+        demande rapidement.
+      </Text>
+    </BaseEmailAdmin>
   );
-};
-
-const main = {
-  backgroundColor: '#f6f9fc',
-  fontFamily:
-    '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Ubuntu,sans-serif',
-};
-
-const container = {
-  backgroundColor: '#ffffff',
-  margin: '0 auto',
-  padding: '20px 0 48px',
-  marginBottom: '64px',
-  maxWidth: '600px',
-};
-
-const header = {
-  padding: '32px 24px 0',
-  textAlign: 'center' as const,
-  background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
-  borderRadius: '8px 8px 0 0',
-  color: 'white',
-};
-
-const headerTitle = {
-  fontSize: '24px',
-  fontWeight: 'bold',
-  margin: '0 0 20px 0',
-  color: 'white',
-};
-
-const content = {
-  padding: '24px',
-  backgroundColor: '#ffffff',
-  border: '1px solid #e2e8f0',
-  borderTop: 'none',
-  borderRadius: '0 0 8px 8px',
-};
-
-const infoSection = {
-  backgroundColor: '#f8fafc',
-  padding: '20px',
-  borderRadius: '8px',
-  margin: '20px 0',
-};
-
-const detailsSection = {
-  backgroundColor: '#ffffff',
-  padding: '20px',
-  border: '1px solid #e2e8f0',
-  borderRadius: '8px',
-};
-
-const actionSection = {
-  marginTop: '20px',
-  padding: '15px',
-  backgroundColor: '#dbeafe',
-  borderRadius: '8px',
-};
-
-const sectionTitle = {
-  fontSize: '16px',
-  fontWeight: 'bold',
-  color: '#1e293b',
-  margin: '0 0 16px 0',
-};
-
-const infoText = {
-  fontSize: '14px',
-  lineHeight: '1.6',
-  color: '#4b5563',
-  margin: '0 0 12px 0',
-};
-
-const actionText = {
-  fontSize: '14px',
-  margin: '0',
-  color: '#1e40af',
-};
-
-const hr = {
-  borderColor: '#e2e8f0',
-  margin: '20px 0',
-};
-
-const footer = {
-  padding: '20px',
-  textAlign: 'center' as const,
-};
-
-const footerText = {
-  fontSize: '12px',
-  color: '#6b7280',
-  margin: '0',
 };
