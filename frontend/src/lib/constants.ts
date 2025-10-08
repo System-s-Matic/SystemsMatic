@@ -105,7 +105,7 @@ export const APPOINTMENT_REASONS = {
 export const APPOINTMENT_STATUSES = {
   PENDING: "En attente",
   CONFIRMED: "Confirmé",
-  RESCHEDULED: "Reprogrammé",
+  RESCHEDULED: "Demande de reprogrammation en cours",
   CANCELLED: "Annulé",
   REJECTED: "Rejeté",
   COMPLETED: "Terminé",

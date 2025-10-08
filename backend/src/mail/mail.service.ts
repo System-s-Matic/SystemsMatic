@@ -81,13 +81,13 @@ export class MailService {
   /**
    * Génère une URL d'action pour un rendez-vous
    * @param appointmentId ID du rendez-vous
-   * @param action Action (confirm/cancel)
+   * @param action Action (confirm/cancel/accept-reschedule/reject-reschedule)
    * @param token Token de sécurité
    * @returns URL complète
    */
   private generateActionUrl(
     appointmentId: string,
-    action: 'confirm' | 'cancel',
+    action: 'confirm' | 'cancel' | 'accept-reschedule' | 'reject-reschedule',
     token: string,
   ): string {
     return `${EMAIL_CONFIG.BASE_URL}/appointments/${appointmentId}/${action}?token=${token}`;
@@ -216,12 +216,12 @@ export class MailService {
     );
     const confirmUrl = this.generateActionUrl(
       appt.id,
-      'confirm',
+      'accept-reschedule',
       appt.confirmationToken,
     );
     const cancelUrl = this.generateActionUrl(
       appt.id,
-      'cancel',
+      'reject-reschedule',
       appt.cancellationToken,
     );
 

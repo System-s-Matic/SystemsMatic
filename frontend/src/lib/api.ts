@@ -44,6 +44,22 @@ export const appointmentService = {
     });
     return response.data;
   },
+
+  // Accepter une demande de reprogrammation
+  acceptReschedule: async (id: string, token: string) => {
+    const response = await api.get(`/appointments/${id}/accept-reschedule`, {
+      params: { token },
+    });
+    return response.data;
+  },
+
+  // Refuser une demande de reprogrammation
+  rejectReschedule: async (id: string, token: string) => {
+    const response = await api.get(`/appointments/${id}/reject-reschedule`, {
+      params: { token },
+    });
+    return response.data;
+  },
 };
 
 // Service pour les devis
@@ -53,6 +69,12 @@ export const quoteService = {
     const response = await api.post("/quotes", data);
     return response.data;
   },
+};
+
+// Export des méthodes pour faciliter l'utilisation
+export const appointmentApi = {
+  ...appointmentService,
+  ...quoteService,
 };
 
 export default api;

@@ -197,4 +197,78 @@ export class AppointmentsService {
   async getStatsAdmin() {
     return this.admin.getStats();
   }
+
+  /**
+   * Accepte une demande de reprogrammation
+   * @param id ID du rendez-vous
+   * @param token Token de confirmation
+   */
+  async acceptReschedule(id: string, token: string) {
+    const appointment = await this.crud.findByIdWithContact(id);
+
+    if (!appointment) {
+      throw new BadRequestException('Rendez-vous introuvable');
+    }
+
+    if (appointment.confirmationToken !== token) {
+      throw new BadRequestException('Token de confirmation invalide');
+    }
+
+    if (appointment.status !== AppointmentStatus.RESCHEDULED) {
+      throw new BadRequestException(
+        "Ce rendez-vous n'est pas en attente de reprogrammation",
+      );
+    }
+
+    // Confirmer la nouvelle date
+    const updated = await this.crud.updateStatus(id, {
+      status: AppointmentStatus.CONFIRMED,
+      confirmedAt: new Date(),
+    });
+
+    // Mettre à jour le rappel avec la nouvelle date
+    await this.reminder.updateReminder(updated.id, updated.scheduledAt);
+
+    // Envoyer un email de confirmation
+    await this.mail.sendAppointmentConfirmation(updated);
+
+    return updated;
+  }
+
+  /**
+   * Refuse une demande de reprogrammation et annule le rendez-vous
+   * @param id ID du rendez-vous
+   * @param token Token d'annulation
+   */
+  async rejectReschedule(id: string, token: string) {
+    const appointment = await this.crud.findByIdWithContact(id);
+
+    if (!appointment) {
+      throw new BadRequestException('Rendez-vous introuvable');
+    }
+
+    if (appointment.cancellationToken !== token) {
+      throw new BadRequestException("Token d'annulation invalide");
+    }
+
+    if (appointment.status !== AppointmentStatus.RESCHEDULED) {
+      throw new BadRequestException(
+        "Ce rendez-vous n'est pas en attente de reprogrammation",
+      );
+    }
+
+    // Supprimer le rappel
+    await this.reminder.deleteReminder(id);
+
+    // Annuler le rendez-vous
+    const updated = await this.crud.updateStatus(id, {
+      status: AppointmentStatus.CANCELLED,
+      cancelledAt: new Date(),
+    });
+
+    // Envoyer un email d'annulation
+    await this.mail.sendAppointmentCancelled(updated);
+
+    return updated;
+  }
 }

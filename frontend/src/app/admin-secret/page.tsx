@@ -282,6 +282,7 @@ export default function AdminPage() {
             sendReminder={appointmentsHook.sendReminder}
             getStatusLabel={appointmentsHook.getStatusLabel}
             getStatusColor={appointmentsHook.getStatusColor}
+            refreshAppointments={appointmentsHook.fetchAppointments}
           />
         ) : (
           <QuotesSection

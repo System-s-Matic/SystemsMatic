@@ -119,9 +119,12 @@ export class AppointmentValidationService {
    * Valide qu'un rendez-vous peut être reprogrammé
    */
   validateReschedule(appointment: any) {
-    if (appointment.status !== AppointmentStatus.PENDING) {
+    if (
+      appointment.status !== AppointmentStatus.PENDING &&
+      appointment.status !== AppointmentStatus.RESCHEDULED
+    ) {
       throw new BadRequestException(
-        'Seuls les rendez-vous en attente peuvent être reprogrammés',
+        'Seuls les rendez-vous en attente ou en cours de reprogrammation peuvent être reprogrammés',
       );
     }
   }

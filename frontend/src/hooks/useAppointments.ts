@@ -101,7 +101,7 @@ export function useAppointments() {
       case AppointmentStatus.CONFIRMED:
         return "Confirmé";
       case AppointmentStatus.RESCHEDULED:
-        return "Reprogrammé";
+        return "Demande de reprogrammation en cours";
       case AppointmentStatus.CANCELLED:
         return "Annulé";
       case AppointmentStatus.REJECTED:

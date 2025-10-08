@@ -25,6 +25,7 @@ interface AppointmentsSectionProps {
   sendReminder: (id: string) => void;
   getStatusLabel: (status: AppointmentStatus) => string;
   getStatusColor: (status: AppointmentStatus) => string;
+  refreshAppointments: () => void;
 }
 
 export default function AppointmentsSection({
@@ -35,6 +36,7 @@ export default function AppointmentsSection({
   sendReminder,
   getStatusLabel,
   getStatusColor,
+  refreshAppointments,
 }: AppointmentsSectionProps) {
   const [showDatePicker, setShowDatePicker] = useState<string | null>(null);
   const [selectedDateTime, setSelectedDateTime] = useState<string>("");
@@ -67,6 +69,8 @@ export default function AppointmentsSection({
         showSuccess("Proposition de reprogrammation envoyée");
         setShowDatePicker(null);
         setSelectedDateTime("");
+        // Rafraîchir la liste des rendez-vous pour mettre à jour l'affichage
+        refreshAppointments();
       } catch (error) {
         console.error("Erreur lors de la reprogrammation:", error);
         showError("Erreur lors de la reprogrammation");

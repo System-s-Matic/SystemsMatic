@@ -41,4 +41,14 @@ export class AppointmentsController {
   canCancel(@Param('id') id: string, @Query('token') token: string) {
     return this.appointmentsService.canCancelCheck(id, token);
   }
+
+  @Get(':id/accept-reschedule')
+  acceptReschedule(@Param('id') id: string, @Query('token') token: string) {
+    return this.appointmentsService.acceptReschedule(id, token);
+  }
+
+  @Get(':id/reject-reschedule')
+  rejectReschedule(@Param('id') id: string, @Query('token') token: string) {
+    return this.appointmentsService.rejectReschedule(id, token);
+  }
 }
