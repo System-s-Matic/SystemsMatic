@@ -188,17 +188,17 @@ export function useQuotes() {
   const getQuoteStatusColor = (status: string) => {
     switch (status) {
       case "PENDING":
-        return "quote-status-pending";
+        return "status-pending";
       case "PROCESSING":
-        return "quote-status-processing";
+        return "status-processing";
       case "SENT":
-        return "quote-status-sent";
+        return "status-sent";
       case "ACCEPTED":
-        return "quote-status-accepted";
+        return "status-accepted";
       case "REJECTED":
-        return "quote-status-rejected";
+        return "status-rejected";
       case "EXPIRED":
-        return "quote-status-expired";
+        return "status-expired";
       default:
         return "";
     }

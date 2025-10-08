@@ -1,21 +1,18 @@
 .quotes-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+  padding: 1.5rem;
 }
 
 .quote-card {
-  background: white;
-  border: 2px solid #e2e8f0;
-  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
   padding: 1.5rem;
-  transition: all 0.2s ease;
-  position: relative;
+  margin-bottom: 1.5rem;
+  background: white;
+  transition: box-shadow 0.15s ease-in-out;
 }
 
 .quote-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border-color: #cbd5e1;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 .quote-card::before {
@@ -122,50 +119,80 @@
 }
 
 .action-button.send {
-  background: #e0e7ff;
-  color: #5b21b6;
-  border: 1px solid #8b5cf6;
+  background-color: #8b5cf6;
+  color: white;
 }
 
 .action-button.send:hover {
-  background: #8b5cf6;
-  color: white;
+  background-color: #7c3aed;
 }
 
 .action-button.accept {
-  background: #d1fae5;
-  color: #047857;
-  border: 1px solid #10b981;
-}
-
-.action-button.accept:hover {
-  background: #10b981;
+  background-color: #10b981;
   color: white;
 }
 
-/* Statistiques spécifiques */
+.action-button.accept:hover {
+  background-color: #059669;
+}
+
+.action-button.reject {
+  background-color: #ef4444;
+  color: white;
+}
+
+.action-button.reject:hover {
+  background-color: #dc2626;
+}
+
+/* Statistiques spécifiques - Harmonisation avec les rendez-vous */
 .quotes-stats .stat-card {
   border-left: 4px solid transparent;
 }
 
 .quotes-stats .stat-card.total {
   border-left-color: #6366f1;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+}
+
+.quotes-stats .stat-card.total p {
+  color: #6366f1;
 }
 
 .quotes-stats .stat-card.pending {
   border-left-color: #f59e0b;
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+}
+
+.quotes-stats .stat-card.pending p {
+  color: #d97706;
 }
 
 .quotes-stats .stat-card.processing {
   border-left-color: #3b82f6;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+}
+
+.quotes-stats .stat-card.processing p {
+  color: #2563eb;
 }
 
 .quotes-stats .stat-card.sent {
   border-left-color: #8b5cf6;
+  background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
+}
+
+.quotes-stats .stat-card.sent p {
+  color: #7c3aed;
 }
 
 .quotes-stats .stat-card.accepted {
   border-left-color: #10b981;
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+}
+
+.quotes-stats .stat-card.accepted p {
+  color: #059669;
 }
 
 .quotes-stats .stat-card.conversion {
@@ -175,32 +202,27 @@
 .no-quotes {
   text-align: center;
   color: #6b7280;
-  font-style: italic;
-  padding: 3rem;
-  background: #f8fafc;
-  border-radius: 8px;
-  border: 2px dashed #cbd5e1;
+  font-size: 1.125rem;
+  padding: 3rem 1rem;
 }
 
 /* === RESPONSIVE POUR DEVIS === */
 
 @media (max-width: 768px) {
-  .quote-card {
-    padding: 1rem;
-  }
-
-  .quote-header {
-    flex-direction: column;
-    gap: 0.75rem;
-    align-items: flex-start;
-  }
-
   .quote-actions {
     flex-direction: column;
   }
 
-  .quote-actions .action-button {
+  .action-button {
     width: 100%;
-    justify-content: center;
+  }
+}
+
+@media (max-width: 640px) {
+  .quote-header {
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: flex-start;
+    gap: 0.5rem;
   }
 }
