@@ -8,9 +8,7 @@ import { showSuccess, showError } from "@/lib/toast";
 export function useAppointments() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<AppointmentStatus | "ALL">(
-    AppointmentStatus.PENDING
-  );
+  const [filter, setFilter] = useState<AppointmentStatus | "ALL">("ALL");
   const [stats, setStats] = useState<any>(null);
 
   const fetchAppointments = async () => {
