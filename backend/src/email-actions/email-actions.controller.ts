@@ -17,7 +17,32 @@ export class EmailActionsController {
   constructor(private readonly emailActionsService: EmailActionsService) {}
 
   /**
-   * Accepter un rendez-vous via email
+   * Accepter un rendez-vous via email (GET pour les liens email)
+   */
+  @Get('appointments/:id/accept')
+  async acceptAppointmentGet(
+    @Param('id') id: string,
+    @Query('token') token: string,
+  ) {
+    try {
+      const result = await this.emailActionsService.acceptAppointment(id, {
+        token,
+      });
+      return {
+        success: true,
+        message: 'Rendez-vous accepté avec succès',
+        appointment: result.appointment,
+      };
+    } catch (error) {
+      throw new HttpException(
+        error.message || "Erreur lors de l'acceptation du rendez-vous",
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  /**
+   * Accepter un rendez-vous via email (POST pour API)
    */
   @Post('appointments/:id/accept')
   async acceptAppointment(
@@ -35,7 +60,32 @@ export class EmailActionsController {
   }
 
   /**
-   * Refuser un rendez-vous via email
+   * Refuser un rendez-vous via email (GET pour les liens email)
+   */
+  @Get('appointments/:id/reject')
+  async rejectAppointmentGet(
+    @Param('id') id: string,
+    @Query('token') token: string,
+  ) {
+    try {
+      const result = await this.emailActionsService.rejectAppointment(id, {
+        token,
+      });
+      return {
+        success: true,
+        message: 'Rendez-vous refusé avec succès',
+        appointment: result.appointment,
+      };
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'Erreur lors du refus du rendez-vous',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  /**
+   * Refuser un rendez-vous via email (POST pour API)
    */
   @Post('appointments/:id/reject')
   async rejectAppointment(
@@ -53,7 +103,32 @@ export class EmailActionsController {
   }
 
   /**
-   * Proposer une reprogrammation via email
+   * Proposer une reprogrammation via email (GET pour les liens email)
+   */
+  @Get('appointments/:id/propose-reschedule')
+  async proposeRescheduleGet(
+    @Param('id') id: string,
+    @Query('token') token: string,
+  ) {
+    try {
+      // Pour les liens email, on ne peut pas proposer une nouvelle date directement
+      // On redirige vers une page de confirmation ou on affiche un message
+      return {
+        success: true,
+        message:
+          'Action de reprogrammation initiée. Veuillez contacter le client pour proposer une nouvelle date.',
+        appointmentId: id,
+      };
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'Erreur lors de la proposition de reprogrammation',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  /**
+   * Proposer une reprogrammation via email (POST pour API)
    */
   @Post('appointments/:id/propose-reschedule')
   async proposeReschedule(
@@ -71,7 +146,27 @@ export class EmailActionsController {
   }
 
   /**
-   * Accepter un devis via email
+   * Accepter un devis via email (GET pour les liens email)
+   */
+  @Get('quotes/:id/accept')
+  async acceptQuoteGet(@Param('id') id: string, @Query('token') token: string) {
+    try {
+      const result = await this.emailActionsService.acceptQuote(id, { token });
+      return {
+        success: true,
+        message: 'Devis accepté avec succès',
+        quote: result.quote,
+      };
+    } catch (error) {
+      throw new HttpException(
+        error.message || "Erreur lors de l'acceptation du devis",
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  /**
+   * Accepter un devis via email (POST pour API)
    */
   @Post('quotes/:id/accept')
   async acceptQuote(
@@ -89,7 +184,30 @@ export class EmailActionsController {
   }
 
   /**
-   * Refuser un devis via email
+   * Refuser un devis via email (GET pour les liens email)
+   */
+  @Get('quotes/:id/reject')
+  async rejectQuoteGet(@Param('id') id: string, @Query('token') token: string) {
+    try {
+      const result = await this.emailActionsService.rejectQuote(id, {
+        rejectionReason: 'Refusé via email',
+        token,
+      });
+      return {
+        success: true,
+        message: 'Devis refusé avec succès',
+        quote: result.quote,
+      };
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'Erreur lors du refus du devis',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  /**
+   * Refuser un devis via email (POST pour API)
    */
   @Post('quotes/:id/reject')
   async rejectQuote(
