@@ -113,181 +113,193 @@ export default function AppointmentForm({ onSubmit }: AppointmentFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmitForm)} className="appointment-form">
-      {/* Informations personnelles */}
-      <div className="form-row">
-        <div className="form-group">
-          <label htmlFor="firstName" className="form-label required">
-            Prénom
-          </label>
-          <input
-            type="text"
-            id="firstName"
-            {...register("firstName", { required: "Le prénom est requis" })}
-            className={`form-input ${errors.firstName ? "error" : ""}`}
-            placeholder="Votre prénom"
-          />
-          {errors.firstName && (
-            <p className="form-error">{errors.firstName.message}</p>
-          )}
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="lastName" className="form-label required">
-            Nom
-          </label>
-          <input
-            type="text"
-            id="lastName"
-            {...register("lastName", { required: "Le nom est requis" })}
-            className={`form-input ${errors.lastName ? "error" : ""}`}
-            placeholder="Votre nom"
-          />
-          {errors.lastName && (
-            <p className="form-error">{errors.lastName.message}</p>
-          )}
-        </div>
-      </div>
-
-      <div className="form-group">
-        <label htmlFor="email" className="form-label required">
-          Email
-        </label>
-        <input
-          type="email"
-          id="email"
-          {...register("email", {
-            required: "L'email est requis",
-            pattern: {
-              value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-              message: "Adresse email invalide",
-            },
-          })}
-          className={`form-input ${errors.email ? "error" : ""}`}
-          placeholder="votre.email@exemple.com"
-        />
-        {errors.email && <p className="form-error">{errors.email.message}</p>}
-      </div>
-
-      <div className="form-group">
-        <label htmlFor="phone" className="form-label">
-          Téléphone
-        </label>
-        <input
-          type="tel"
-          id="phone"
-          {...register("phone")}
-          className="form-input"
-          placeholder="0690 12 34 56"
-        />
-      </div>
-
-      {/* Sélection de date et heure */}
-      <div className="form-group">
-        <label className="form-label required">Date et heure souhaitées</label>
-
-        <NativeDateTimePicker
-          value={selectedDateTime}
-          onChange={handleDateChange}
-          className={errors.requestedAt ? "error" : ""}
-          error={!!errors.requestedAt}
-        />
-
-        {errors.requestedAt && (
-          <p className="form-error">{errors.requestedAt.message}</p>
-        )}
-        <p className="form-help">
-          Choisissez votre créneau préféré (à partir du lendemain et dans un
-          délai maximum d'1 mois). Créneaux disponibles : 8h-12h et 14h-17h
-          (toutes les 30 minutes). Nous vous confirmerons la disponibilité et
-          vous proposerons un horaire définitif.
-        </p>
-        <p className="form-help timezone-info">
-          <strong>Votre timezone détectée :</strong>{" "}
-          {timezoneDisplay || "Chargement..."}
+    <div className="appointment-form-container">
+      <div className="appointment-form-header">
+        <h2 className="appointment-form-title">Demander un rendez-vous</h2>
+        <p className="appointment-form-subtitle">
+          Choisissez votre créneau préféré et nous vous confirmerons la
+          disponibilité
         </p>
       </div>
 
-      {/* Motif du rendez-vous */}
-      <div className="form-group">
-        <label htmlFor="reason" className="form-label">
-          Motif du rendez-vous
-        </label>
-        <select
-          id="reason"
-          {...register("reason")}
-          onChange={(e) => setShowOtherReason(e.target.value === "AUTRE")}
-          className="form-select"
-        >
-          <option value="">Sélectionnez un motif</option>
-          <option value={AppointmentReason.DIAGNOSTIC}>Diagnostic</option>
-          <option value={AppointmentReason.INSTALLATION}>Installation</option>
-          <option value={AppointmentReason.MAINTENANCE}>Maintenance</option>
-          <option value={AppointmentReason.AUTRE}>Autre</option>
-        </select>
-      </div>
+      <form onSubmit={handleSubmit(onSubmitForm)} className="appointment-form">
+        {/* Informations personnelles */}
+        <div className="form-row">
+          <div className="form-group">
+            <label htmlFor="firstName" className="form-label required">
+              Prénom
+            </label>
+            <input
+              type="text"
+              id="firstName"
+              {...register("firstName", { required: "Le prénom est requis" })}
+              className={`form-input ${errors.firstName ? "error" : ""}`}
+              placeholder="Votre prénom"
+            />
+            {errors.firstName && (
+              <p className="form-error">{errors.firstName.message}</p>
+            )}
+          </div>
 
-      {showOtherReason && (
+          <div className="form-group">
+            <label htmlFor="lastName" className="form-label required">
+              Nom
+            </label>
+            <input
+              type="text"
+              id="lastName"
+              {...register("lastName", { required: "Le nom est requis" })}
+              className={`form-input ${errors.lastName ? "error" : ""}`}
+              placeholder="Votre nom"
+            />
+            {errors.lastName && (
+              <p className="form-error">{errors.lastName.message}</p>
+            )}
+          </div>
+        </div>
+
         <div className="form-group">
-          <label htmlFor="reasonOther" className="form-label">
-            Précisez le motif
+          <label htmlFor="email" className="form-label required">
+            Email
           </label>
           <input
-            type="text"
-            id="reasonOther"
-            {...register("reasonOther")}
+            type="email"
+            id="email"
+            {...register("email", {
+              required: "L'email est requis",
+              pattern: {
+                value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                message: "Adresse email invalide",
+              },
+            })}
+            className={`form-input ${errors.email ? "error" : ""}`}
+            placeholder="votre.email@exemple.com"
+          />
+          {errors.email && <p className="form-error">{errors.email.message}</p>}
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="phone" className="form-label">
+            Téléphone
+          </label>
+          <input
+            type="tel"
+            id="phone"
+            {...register("phone")}
             className="form-input"
-            placeholder="Décrivez votre besoin"
+            placeholder="0690 12 34 56"
           />
         </div>
-      )}
 
-      {/* Message */}
-      <div className="form-group">
-        <label htmlFor="message" className="form-label">
-          Message (optionnel)
-        </label>
-        <textarea
-          id="message"
-          {...register("message")}
-          rows={4}
-          className="form-textarea"
-          placeholder="Décrivez votre problème ou vos besoins..."
-        />
-      </div>
-
-      {/* Consentement */}
-      <div className="form-checkbox-group">
-        <input
-          type="checkbox"
-          id="consent"
-          {...register("consent", {
-            required: "Vous devez accepter les conditions",
-          })}
-          className="form-checkbox"
-        />
-        <div className="form-checkbox-label">
-          <label htmlFor="consent">
-            J'accepte que mes données personnelles soient traitées dans le cadre
-            de ma demande de rendez-vous.
+        {/* Sélection de date et heure */}
+        <div className="form-group">
+          <label className="form-label required">
+            Date et heure souhaitées
           </label>
-          {errors.consent && (
-            <p className="form-error">{errors.consent.message}</p>
-          )}
-        </div>
-      </div>
 
-      {/* Bouton de soumission */}
-      <button type="submit" disabled={isSubmitting} className="form-submit">
-        {isSubmitting ? (
-          <>
-            <div className="form-spinner"></div>
-            Envoi en cours...
-          </>
-        ) : (
-          "Demander un rendez-vous"
+          <NativeDateTimePicker
+            value={selectedDateTime}
+            onChange={handleDateChange}
+            className={errors.requestedAt ? "error" : ""}
+            error={!!errors.requestedAt}
+          />
+
+          {errors.requestedAt && (
+            <p className="form-error">{errors.requestedAt.message}</p>
+          )}
+          <p className="form-help">
+            Choisissez votre créneau préféré (à partir du lendemain et dans un
+            délai maximum d'1 mois). Créneaux disponibles : 8h-12h et 14h-17h
+            (toutes les 30 minutes). Nous vous confirmerons la disponibilité et
+            vous proposerons un horaire définitif.
+          </p>
+          <p className="form-help timezone-info">
+            <strong>Votre timezone détectée :</strong>{" "}
+            {timezoneDisplay || "Chargement..."}
+          </p>
+        </div>
+
+        {/* Motif du rendez-vous */}
+        <div className="form-group">
+          <label htmlFor="reason" className="form-label">
+            Motif du rendez-vous
+          </label>
+          <select
+            id="reason"
+            {...register("reason")}
+            onChange={(e) => setShowOtherReason(e.target.value === "AUTRE")}
+            className="form-select"
+          >
+            <option value="">Sélectionnez un motif</option>
+            <option value={AppointmentReason.DIAGNOSTIC}>Diagnostic</option>
+            <option value={AppointmentReason.INSTALLATION}>Installation</option>
+            <option value={AppointmentReason.MAINTENANCE}>Maintenance</option>
+            <option value={AppointmentReason.AUTRE}>Autre</option>
+          </select>
+        </div>
+
+        {showOtherReason && (
+          <div className="form-group">
+            <label htmlFor="reasonOther" className="form-label">
+              Précisez le motif
+            </label>
+            <input
+              type="text"
+              id="reasonOther"
+              {...register("reasonOther")}
+              className="form-input"
+              placeholder="Décrivez votre besoin"
+            />
+          </div>
         )}
-      </button>
-    </form>
+
+        {/* Message */}
+        <div className="form-group">
+          <label htmlFor="message" className="form-label">
+            Message (optionnel)
+          </label>
+          <textarea
+            id="message"
+            {...register("message")}
+            rows={4}
+            className="form-textarea"
+            placeholder="Décrivez votre problème ou vos besoins..."
+          />
+        </div>
+
+        {/* Consentement */}
+        <div className="form-checkbox-group">
+          <input
+            type="checkbox"
+            id="consent"
+            {...register("consent", {
+              required: "Vous devez accepter les conditions",
+            })}
+            className="form-checkbox"
+          />
+          <div className="form-checkbox-label">
+            <label htmlFor="consent">
+              J'accepte que mes données personnelles soient traitées dans le
+              cadre de ma demande de rendez-vous.
+            </label>
+            {errors.consent && (
+              <p className="form-error">{errors.consent.message}</p>
+            )}
+          </div>
+        </div>
+
+        {/* Bouton de soumission */}
+        <button type="submit" disabled={isSubmitting} className="form-submit">
+          {isSubmitting ? (
+            <>
+              <div className="form-spinner"></div>
+              Envoi en cours...
+            </>
+          ) : (
+            "Demander un rendez-vous"
+          )}
+        </button>
+      </form>
+    </div>
   );
 }

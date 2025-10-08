@@ -60,7 +60,6 @@ export default function AppointmentSection() {
       {/* Formulaire de rendez-vous */}
       {!isFormSubmitted ? (
         <div id="appointment-form" className="appointment-form-container">
-          <h2 className="form-title">Prendre rendez-vous</h2>
           <AppointmentForm onSubmit={handleFormSubmit} />
         </div>
       ) : (

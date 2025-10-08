@@ -317,9 +317,7 @@
 .appointment-form-container {
   background: var(--color-bg-primary);
   border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-md);
   border: 1px solid #f1f5f9;
-  padding: var(--spacing-xl);
 }
 
 .success-button {

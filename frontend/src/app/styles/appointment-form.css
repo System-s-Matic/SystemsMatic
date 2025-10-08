@@ -1,12 +1,32 @@
+.appointment-form-title {
+  font-size: 1.375rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-sm);
+}
 
+.appointment-form-subtitle {
+  color: var(--color-text-secondary);
+  margin-bottom: 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.appointment-form-header {
+  background: linear-gradient(
+    135deg,
+    var(--color-bg-primary) 0%,
+    var(--color-bg-secondary) 100%
+  );
+  padding: var(--spacing-xl);
+  text-align: center;
+  border-bottom: 1px solid #f1f5f9;
+}
 
 .appointment-form {
-  max-width: 600px;
   margin: 0 auto;
   padding: 2rem;
   background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .form-row {
@@ -142,7 +162,6 @@
   }
 }
 
-
 .react-datepicker-wrapper {
   width: 100%;
 }
@@ -273,7 +292,6 @@
   background: #e5e7eb;
   color: #374151;
 }
-
 
 @media (max-width: 768px) {
   .appointment-form {
