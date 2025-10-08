@@ -15,7 +15,7 @@ dayjs.locale('fr');
 const EMAIL_TIMEZONE = 'America/Guadeloupe';
 type AppointmentWithContact = Appointment & { contact?: Contact };
 const EMAIL_CONFIG = {
-  DEFAULT_FROM: 'noreply@systemsmatic.com',
+  DEFAULT_FROM: 'noreply@systemsmatic.netlify.app',
   DATE_FORMAT: 'dddd DD MMMM YYYY à HH:mm',
   BASE_URL: process.env.PUBLIC_URL || 'http://localhost:3000',
   LOGO_URL:
