@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export function middleware(request: NextRequest) {
+  const hostname = request.headers.get("host") || "";
+
+  // Rediriger vers l'administration si le domaine contient "admin"
+  if (hostname.includes("admin") && request.nextUrl.pathname === "/") {
+    return NextResponse.redirect(new URL("/admin-secret", request.url));
+  }
+
   // Protection supplémentaire pour les pages d'administration
   if (request.nextUrl.pathname.startsWith("/admin-secret")) {
     // Ajouter des headers de sécurité pour empêcher l'indexation
@@ -24,5 +31,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin-secret/:path*"],
+  matcher: ["/", "/admin-secret/:path*"],
 };
