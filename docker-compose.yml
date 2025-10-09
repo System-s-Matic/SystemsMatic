@@ -79,14 +79,32 @@ services:
     ports:
       - "3001:3001"
     environment:
+      # Runtime
       NODE_ENV: production
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      JWT_SECRET: ${JWT_SECRET}
-      ADMIN_API_KEY: ${ADMIN_API_KEY}
-      RESEND_API_KEY: ${RESEND_API_KEY}
+      PORT: 3001
       CORS_ORIGIN: ${CORS_ORIGIN:-https://${DOMAIN}}
+      MAINTENANCE_MODE: ${MAINTENANCE_MODE:-false}
+
+      # Base de données
+      DATABASE_URL: ${DATABASE_URL}
+      DIRECT_URL: ${DIRECT_URL}
+
+      # Redis
+      REDIS_URL: ${REDIS_URL}
+
+      # URLs publiques
+      PUBLIC_URL: ${PUBLIC_URL}
+
+      # Email
+      MAIL_FROM: ${MAIL_FROM}
+      RESEND_API_KEY: ${RESEND_API_KEY}
+
+      # JWT & Sécurité
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-24h}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-7d}
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
     depends_on:
       postgres:
         condition: service_healthy
