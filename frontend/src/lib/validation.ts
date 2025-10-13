@@ -1,18 +1,24 @@
 /**
  * ====================================================
- * UTILITAIRES DE VALIDATION
+ * UTILITAIRES DE VALIDATION ET SANITISATION
  * ====================================================
  *
  * Ce fichier contient toutes les fonctions de validation
- * utilisées dans l'application pour garantir la cohérence
- * et la réutilisabilité.
+ * et de sanitisation utilisées dans l'application pour
+ * garantir la cohérence, la réutilisabilité et la sécurité.
  *
  * @author System's Matic
  * @version 1.0.0
  */
 
-import { REGEX_PATTERNS, TEXT_LIMITS, ERROR_MESSAGES } from "./constants";
+import {
+  REGEX_PATTERNS,
+  TEXT_LIMITS,
+  ERROR_MESSAGES,
+  SANITIZATION_CONFIG,
+} from "./constants";
 import { isValidTimeSlot, isValidBookingDate } from "./date-utils";
+import DOMPurify from "dompurify";
 
 // ====================================================
 // TYPES DE VALIDATION
@@ -36,6 +42,151 @@ export interface TextValidationOptions {
   pattern?: RegExp;
   customMessage?: string;
 }
+
+// ====================================================
+// UTILITAIRES DE SANITISATION
+// ====================================================
+
+/**
+ * Sanitise une chaîne de caractères en supprimant les caractères dangereux
+ *
+ * @param value - Valeur à sanitiser
+ * @param options - Options de sanitisation
+ * @returns Valeur sanitizée
+ */
+export const sanitizeString = (
+  value: string,
+  options: {
+    removeHtml?: boolean;
+    removeScripts?: boolean;
+    allowOnlyText?: boolean;
+    maxLength?: number;
+  } = {}
+): string => {
+  if (!value) return "";
+
+  let sanitized = value.trim();
+
+  // Supprimer les caractères de contrôle dangereux
+  sanitized = sanitized.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "");
+
+  // Si on veut seulement du texte, supprimer tout HTML
+  if (options.allowOnlyText || options.removeHtml) {
+    sanitized = sanitized.replace(/<[^>]*>/g, "");
+  }
+
+  // Si on veut supprimer les scripts
+  if (options.removeScripts) {
+    sanitized = sanitized.replace(
+      /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
+      ""
+    );
+    sanitized = sanitized.replace(/javascript:/gi, "");
+    sanitized = sanitized.replace(/on\w+\s*=/gi, "");
+  }
+
+  // Limiter la longueur si spécifiée
+  if (options.maxLength && sanitized.length > options.maxLength) {
+    sanitized = sanitized.substring(0, options.maxLength);
+  }
+
+  return sanitized;
+};
+
+/**
+ * Sanitise du contenu HTML avec DOMPurify
+ *
+ * @param html - Contenu HTML à sanitiser
+ * @param options - Options de sanitisation DOMPurify
+ * @returns HTML sanitizé
+ */
+export const sanitizeHtml = (
+  html: string,
+  options: {
+    allowTags?: string[];
+    allowAttributes?: string[];
+    stripTags?: boolean;
+  } = {}
+): string => {
+  if (!html) return "";
+
+  const config = {
+    ALLOWED_TAGS: options.allowTags || [...SANITIZATION_CONFIG.ALLOWED_TAGS],
+    ALLOWED_ATTR: options.allowAttributes || [
+      ...SANITIZATION_CONFIG.ALLOWED_ATTRIBUTES,
+    ],
+    KEEP_CONTENT: true,
+  };
+
+  if (options.stripTags) {
+    config.ALLOWED_TAGS = [];
+  }
+
+  return DOMPurify.sanitize(html, config);
+};
+
+/**
+ * Sanitise un nom (prénom/nom) en supprimant les caractères non autorisés
+ *
+ * @param name - Nom à sanitiser
+ * @returns Nom sanitizé
+ */
+export const sanitizeName = (name: string): string => {
+  if (!name) return "";
+
+  // Supprimer les espaces en début/fin
+  let sanitized = name.trim();
+
+  // Supprimer les caractères non autorisés (garder seulement lettres, espaces, apostrophes, tirets)
+  sanitized = sanitized.replace(/[^a-zA-ZÀ-ÿ\s'-]/g, "");
+
+  // Supprimer les espaces multiples
+  sanitized = sanitized.replace(/\s+/g, " ");
+
+  return sanitized;
+};
+
+/**
+ * Sanitise un numéro de téléphone
+ *
+ * @param phone - Numéro de téléphone à sanitiser
+ * @returns Numéro sanitizé
+ */
+export const sanitizePhone = (phone: string): string => {
+  if (!phone) return "";
+
+  // Supprimer tous les caractères sauf chiffres, +, -, (, ), espaces
+  let sanitized = phone.replace(/[^\d\s\-\+\(\)]/g, "");
+
+  // Supprimer les espaces multiples
+  sanitized = sanitized.replace(/\s+/g, " ").trim();
+
+  return sanitized;
+};
+
+/**
+ * Sanitise un message en supprimant le HTML et les scripts
+ *
+ * @param message - Message à sanitiser
+ * @returns Message sanitizé
+ */
+export const sanitizeMessage = (message: string): string => {
+  if (!message) return "";
+
+  // Supprimer le HTML et les scripts
+  let sanitized = sanitizeString(message, {
+    removeHtml: true,
+    removeScripts: true,
+    allowOnlyText: true,
+    maxLength: TEXT_LIMITS.MESSAGE.MAX,
+  });
+
+  // Supprimer les espaces multiples et les sauts de ligne excessifs
+  sanitized = sanitized.replace(/\s+/g, " ");
+  sanitized = sanitized.replace(/\n\s*\n\s*\n/g, "\n\n");
+
+  return sanitized.trim();
+};
 
 // ====================================================
 // VALIDATEURS DE BASE
@@ -159,12 +310,12 @@ export const validatePhoneFR = (phone: string): ValidationResult => {
     return { isValid: true }; // Optionnel
   }
 
-  // Nettoyer le numéro (enlever espaces, points, tirets)
-  const cleanPhone = phone.replace(/[\s.-]/g, "");
+  // Sanitiser le numéro de téléphone
+  const sanitizedPhone = sanitizePhone(phone);
 
   // Vérifier le format français ou guadeloupéen
-  const isFrenchFormat = REGEX_PATTERNS.PHONE_FR.test(phone);
-  const isGuadeloupeFormat = REGEX_PATTERNS.PHONE_GP.test(phone);
+  const isFrenchFormat = REGEX_PATTERNS.PHONE_FR.test(sanitizedPhone);
+  const isGuadeloupeFormat = REGEX_PATTERNS.PHONE_GP.test(sanitizedPhone);
 
   if (!isFrenchFormat && !isGuadeloupeFormat) {
     return {
@@ -187,15 +338,18 @@ export const validateName = (
   name: string,
   fieldName: string = "nom"
 ): ValidationResult => {
+  // Sanitiser d'abord le nom
+  const sanitizedName = sanitizeName(name);
+
   // Vérifier si requis
-  const requiredResult = validateRequired(name, fieldName);
+  const requiredResult = validateRequired(sanitizedName, fieldName);
   if (!requiredResult.isValid) {
     return requiredResult;
   }
 
   // Vérifier la longueur
   const lengthResult = validateTextLength(
-    name,
+    sanitizedName,
     TEXT_LIMITS.FIRST_NAME.MIN,
     TEXT_LIMITS.FIRST_NAME.MAX
   );
@@ -205,7 +359,7 @@ export const validateName = (
 
   // Vérifier les caractères (lettres, espaces, apostrophes, tirets)
   const namePattern = /^[a-zA-ZÀ-ÿ\s'-]+$/;
-  if (!namePattern.test(name.trim())) {
+  if (!namePattern.test(sanitizedName)) {
     return {
       isValid: false,
       message: `Le ${fieldName} ne peut contenir que des lettres, espaces, apostrophes et tirets`,
@@ -282,7 +436,10 @@ export const validateMessage = (message: string): ValidationResult => {
     return { isValid: true }; // Optionnel
   }
 
-  return validateTextLength(message, 0, TEXT_LIMITS.MESSAGE.MAX);
+  // Sanitiser le message
+  const sanitizedMessage = sanitizeMessage(message);
+
+  return validateTextLength(sanitizedMessage, 0, TEXT_LIMITS.MESSAGE.MAX);
 };
 
 /**
@@ -304,7 +461,15 @@ export const validateReasonOther = (
   }
 
   if (reasonOther) {
-    return validateTextLength(reasonOther, 0, TEXT_LIMITS.REASON_OTHER.MAX);
+    // Sanitiser la raison
+    const sanitizedReason = sanitizeString(reasonOther, {
+      removeHtml: true,
+      removeScripts: true,
+      allowOnlyText: true,
+      maxLength: TEXT_LIMITS.REASON_OTHER.MAX,
+    });
+
+    return validateTextLength(sanitizedReason, 0, TEXT_LIMITS.REASON_OTHER.MAX);
   }
 
   return { isValid: true };
@@ -398,7 +563,46 @@ export const validateAppointmentForm = (data: {
 // ====================================================
 
 /**
- * Validateurs exportés pour usage externe
+ * Sanitise toutes les données d'un formulaire de rendez-vous
+ *
+ * @param data - Données du formulaire à sanitiser
+ * @returns Données sanitizées
+ */
+export const sanitizeAppointmentForm = (data: {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  reason?: string;
+  reasonOther?: string;
+  message?: string;
+  requestedAt: string;
+  timezone: string;
+  consent: boolean;
+}) => {
+  return {
+    firstName: sanitizeName(data.firstName),
+    lastName: sanitizeName(data.lastName),
+    email: data.email.trim().toLowerCase(), // Email déjà validé par regex
+    phone: data.phone ? sanitizePhone(data.phone) : undefined,
+    reason: data.reason,
+    reasonOther: data.reasonOther
+      ? sanitizeString(data.reasonOther, {
+          removeHtml: true,
+          removeScripts: true,
+          allowOnlyText: true,
+          maxLength: TEXT_LIMITS.REASON_OTHER.MAX,
+        })
+      : undefined,
+    message: data.message ? sanitizeMessage(data.message) : undefined,
+    requestedAt: data.requestedAt,
+    timezone: data.timezone,
+    consent: data.consent,
+  };
+};
+
+/**
+ * Validateurs et sanitiseurs exportés pour usage externe
  */
 export const validators = {
   required: validateRequired,
@@ -411,4 +615,13 @@ export const validators = {
   message: validateMessage,
   reasonOther: validateReasonOther,
   form: validateAppointmentForm,
+} as const;
+
+export const sanitizers = {
+  string: sanitizeString,
+  html: sanitizeHtml,
+  name: sanitizeName,
+  phone: sanitizePhone,
+  message: sanitizeMessage,
+  form: sanitizeAppointmentForm,
 } as const;

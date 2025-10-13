@@ -188,3 +188,52 @@ export const DEV_CONFIG = {
   ENABLE_REDUX_DEVTOOLS: process.env.NODE_ENV === "development",
   API_MOCK_DELAY: 1000, // Délai de simulation pour les mocks
 } as const;
+
+// ====================================================
+// CONFIGURATION DE SANITISATION
+// ====================================================
+
+/**
+ * Configuration pour la sanitisation HTML avec DOMPurify
+ */
+export const SANITIZATION_CONFIG = {
+  ALLOWED_TAGS: ["p", "br", "strong", "em", "u", "b", "i"],
+  ALLOWED_ATTRIBUTES: [],
+  FORBID_TAGS: [
+    "script",
+    "object",
+    "embed",
+    "iframe",
+    "form",
+    "input",
+    "button",
+  ],
+  FORBID_ATTR: [
+    "onload",
+    "onerror",
+    "onclick",
+    "onmouseover",
+    "onfocus",
+    "onblur",
+  ],
+} as const;
+
+/**
+ * Caractères dangereux à supprimer
+ */
+export const DANGEROUS_CHARS = {
+  CONTROL_CHARS: /[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g,
+  SCRIPT_TAGS: /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
+  JAVASCRIPT_PROTOCOL: /javascript:/gi,
+  EVENT_HANDLERS: /on\w+\s*=/gi,
+  HTML_TAGS: /<[^>]*>/g,
+} as const;
+
+/**
+ * Patterns de validation pour la sanitisation
+ */
+export const SANITIZATION_PATTERNS = {
+  NAME_ALLOWED: /^[a-zA-ZÀ-ÿ\s'-]+$/,
+  PHONE_ALLOWED: /^[\d\s\-\+\(\)]+$/,
+  EMAIL_SAFE: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+} as const;

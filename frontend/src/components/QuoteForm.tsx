@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { showSuccess, showError } from "../lib/toast";
 import { quoteService, CreateQuoteDto } from "../lib/api";
+import { sanitizers } from "../lib/validation";
 
 type QuoteFormData = CreateQuoteDto;
 
@@ -24,30 +25,39 @@ export default function QuoteForm() {
   const validateForm = (): boolean => {
     const newErrors: Partial<QuoteFormData> = {};
 
-    if (!formData.firstName.trim()) {
+    // Sanitiser les données avant validation
+    const sanitizedFirstName = sanitizers.name(formData.firstName);
+    const sanitizedLastName = sanitizers.name(formData.lastName);
+    const sanitizedEmail = formData.email.trim().toLowerCase();
+    const sanitizedPhone = formData.phone
+      ? sanitizers.phone(formData.phone)
+      : "";
+    const sanitizedMessage = sanitizers.message(formData.message);
+
+    if (!sanitizedFirstName) {
       newErrors.firstName = "Le prénom est requis";
     }
 
-    if (!formData.lastName.trim()) {
+    if (!sanitizedLastName) {
       newErrors.lastName = "Le nom est requis";
     }
 
-    if (!formData.email.trim()) {
+    if (!sanitizedEmail) {
       newErrors.email = "L'email est requis";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(sanitizedEmail)) {
       newErrors.email = "Format d'email invalide";
     }
 
     if (
-      formData.phone?.trim() &&
-      !/^[\d\s\-\+\(\)]{10,}$/.test(formData.phone.replace(/\s/g, ""))
+      sanitizedPhone &&
+      !/^[\d\s\-\+\(\)]{10,}$/.test(sanitizedPhone.replace(/\s/g, ""))
     ) {
       newErrors.phone = "Format de téléphone invalide";
     }
 
-    if (!formData.message.trim()) {
+    if (!sanitizedMessage) {
       newErrors.message = "Le message est requis";
-    } else if (formData.message.trim().length < 10) {
+    } else if (sanitizedMessage.length < 10) {
       newErrors.message = "Le message doit contenir au moins 10 caractères";
     }
 
@@ -70,13 +80,18 @@ export default function QuoteForm() {
     setIsSubmitting(true);
 
     try {
-      // Préparer les données en excluant le phone si vide
-      const dataToSend = {
-        ...formData,
-        phone: formData.phone?.trim() || undefined,
+      // Sanitiser toutes les données avant envoi
+      const sanitizedData = {
+        firstName: sanitizers.name(formData.firstName),
+        lastName: sanitizers.name(formData.lastName),
+        email: formData.email.trim().toLowerCase(),
+        phone: formData.phone ? sanitizers.phone(formData.phone) : undefined,
+        message: sanitizers.message(formData.message),
+        acceptPhone: formData.acceptPhone,
+        acceptTerms: formData.acceptTerms,
       };
 
-      await quoteService.create(dataToSend);
+      await quoteService.create(sanitizedData);
 
       setIsFormSubmitted(true);
       setFormData({

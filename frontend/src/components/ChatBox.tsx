@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { sanitizers } from "../lib/validation";
 
 interface DialogOption {
   text: string;
@@ -328,7 +329,13 @@ export default function ChatBox() {
                           <span></span>
                         </div>
                       ) : (
-                        <p>{message.content}</p>
+                        <p
+                          dangerouslySetInnerHTML={{
+                            __html: sanitizers.html(message.content, {
+                              stripTags: true,
+                            }),
+                          }}
+                        />
                       )}
                     </div>
                   )}

@@ -11,6 +11,7 @@ import {
   getUserTimezone,
   getUserTimezoneDisplayName,
 } from "../lib/date-utils";
+import { sanitizers } from "../lib/validation";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
@@ -93,13 +94,20 @@ export default function AppointmentForm({ onSubmit }: AppointmentFormProps) {
     setIsSubmitting(true);
 
     try {
+      // Sanitiser toutes les données avant envoi
+      const sanitizedData = sanitizers.form(data);
+
       const cleanedData: CreateAppointmentDto = {
-        ...data,
-        reasonOther: data.reason === "AUTRE" ? data.reasonOther : undefined,
-        phone: data.phone || undefined,
-        message: data.message || undefined,
-        requestedAt: data.requestedAt,
-        timezone: data.timezone || getUserTimezone(),
+        ...sanitizedData,
+        reason: sanitizedData.reason as AppointmentReason | undefined,
+        reasonOther:
+          sanitizedData.reason === "AUTRE"
+            ? sanitizedData.reasonOther
+            : undefined,
+        phone: sanitizedData.phone || undefined,
+        message: sanitizedData.message || undefined,
+        requestedAt: sanitizedData.requestedAt,
+        timezone: sanitizedData.timezone || getUserTimezone(),
       };
 
       await onSubmit(cleanedData);
