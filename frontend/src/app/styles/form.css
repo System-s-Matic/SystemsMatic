@@ -130,7 +130,6 @@
   gap: var(--spacing-md);
   padding: var(--spacing-lg);
   background: var(--color-bg-primary);
-  border-radius: var(--radius-md);
   border: 1px solid var(--color-border-subtle);
   transition: all var(--transition-fast);
   cursor: pointer;
@@ -157,8 +156,8 @@
 }
 
 .form-checkbox {
-  width: 18px;
-  height: 18px;
+  width: 14px;
+  height: 14px;
   margin: 0;
   cursor: pointer;
   accent-color: var(--color-primary);
@@ -170,12 +169,6 @@
   line-height: 1.5;
   cursor: pointer;
   flex: 1;
-}
-
-.form-checkboxes {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
 }
 
 .form-submit {
