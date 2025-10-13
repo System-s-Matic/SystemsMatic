@@ -1,0 +1,30 @@
+# Dockerfile.dev - Backend (développement local)
+FROM node:20-alpine
+
+# Installer les dépendances système nécessaires pour Prisma
+RUN apk add --no-cache openssl
+
+WORKDIR /app
+
+# Copier les fichiers de dépendances
+COPY package*.json ./
+COPY prisma ./prisma/
+
+# Installer toutes les dépendances (y compris dev)
+RUN npm install
+
+# Générer le client Prisma
+RUN npx prisma generate
+
+# Copier le code source
+COPY . .
+
+# Fix permissions pour éviter les erreurs EACCES sur les volumes
+RUN chown -R node:node /app
+USER node
+
+# Exposer le port de NestJS
+EXPOSE 3001
+
+# Lancer l'application NestJS en mode développement (watch)
+CMD ["npm", "run", "dev"]

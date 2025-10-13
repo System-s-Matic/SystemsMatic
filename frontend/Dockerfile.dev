@@ -1,0 +1,22 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copier les fichiers de dépendances
+COPY package*.json ./
+
+# Installer toutes les dépendances
+RUN npm install
+
+# Copier le reste du code
+COPY . .
+
+# Fix permissions pour éviter EACCES
+RUN chown -R node:node /app
+USER node
+
+# Exposer le port
+EXPOSE 3000
+
+# Lancer Next.js en mode dev (hot reload)
+CMD ["npm", "run", "dev"]

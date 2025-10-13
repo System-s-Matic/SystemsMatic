@@ -1,189 +1,68 @@
-version: "3.8"
-
 services:
-  # Base de données PostgreSQL
-  postgres:
-    image: postgres:15-alpine
-    container_name: systemsmatic-postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - systemsmatic-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  # Redis pour les queues
-  redis:
-    image: redis:7-alpine
-    container_name: systemsmatic-redis
-    restart: unless-stopped
-    command: redis-server --appendonly yes
-    volumes:
-      - redis_data:/data
-    networks:
-      - systemsmatic-network
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  # Traefik - Reverse Proxy et Load Balancer
-  traefik:
-    image: traefik:v3.0
-    container_name: systemsmatic-traefik
-    restart: unless-stopped
-    command:
-      - --api.dashboard=true
-      - --api.insecure=false
-      - --providers.docker=true
-      - --providers.docker.exposedbydefault=false
-      - --entrypoints.web.address=:80
-      - --entrypoints.websecure.address=:443
-      - --certificatesresolvers.letsencrypt.acme.tlschallenge=true
-      - --certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL}
-      - --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json
-      - --global.sendanonymoususage=false
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - traefik_letsencrypt:/letsencrypt
-    networks:
-      - systemsmatic-network
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.traefik.rule=Host(`traefik.${DOMAIN}`)"
-      - "traefik.http.routers.traefik.entrypoints=websecure"
-      - "traefik.http.routers.traefik.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.traefik.service=api@internal"
-      - "traefik.http.routers.traefik.middlewares=auth"
-      - "traefik.http.middlewares.auth.basicauth.users=${TRAEFIK_AUTH:-admin:$$2y$$10$$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi}"
-
-  # Backend NestJS
   backend:
+    container_name: systemsmatic-backend
     build:
       context: ./backend
-      dockerfile: Dockerfile
-    container_name: systemsmatic-backend
-    restart: unless-stopped
+      dockerfile: Dockerfile.dev
+    command: npm run dev
     ports:
       - "3001:3001"
-    environment:
-      # Runtime
-      NODE_ENV: production
-      PORT: 3001
-      CORS_ORIGIN: ${CORS_ORIGIN:-https://${DOMAIN}}
-      MAINTENANCE_MODE: ${MAINTENANCE_MODE:-false}
-
-      # Base de données
-      DATABASE_URL: ${DATABASE_URL}
-      DIRECT_URL: ${DIRECT_URL}
-
-      # Redis
-      REDIS_URL: ${REDIS_URL}
-
-      # URLs publiques
-      PUBLIC_URL: ${PUBLIC_URL}
-
-      # Email
-      MAIL_FROM: ${MAIL_FROM}
-      RESEND_API_KEY: ${RESEND_API_KEY}
-
-      # JWT & Sécurité
-      JWT_SECRET: ${JWT_SECRET}
-      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-24h}
-      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-7d}
-      ADMIN_EMAIL: ${ADMIN_EMAIL}
-      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+    env_file:
+      - ./backend/.env.docker
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
     depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+      - postgres
+      - redis
     networks:
-      - systemsmatic-network
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.backend.rule=Host(`api.${DOMAIN}`)"
-      - "traefik.http.routers.backend.entrypoints=websecure"
-      - "traefik.http.routers.backend.tls.certresolver=letsencrypt"
-      - "traefik.http.services.backend.loadbalancer.server.port=3001"
-      - "traefik.docker.network=systemsmatic-network"
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "wget",
-          "--no-verbose",
-          "--tries=1",
-          "--spider",
-          "http://localhost:3001/health",
-        ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      - systemsmatic-net
 
-  # Frontend Next.js (gère les deux domaines)
   frontend:
+    container_name: systemsmatic-frontend
     build:
       context: ./frontend
-      dockerfile: Dockerfile
-    container_name: systemsmatic-frontend
-    restart: unless-stopped
+      dockerfile: Dockerfile.dev
+    command: npm run dev
     ports:
       - "3000:3000"
-    environment:
-      NODE_ENV: production
-      NEXT_PUBLIC_API_URL: https://api.${DOMAIN}
-      NEXT_PUBLIC_DOMAIN: ${DOMAIN}
+    env_file:
+      - ./frontend/.env.local
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
     networks:
-      - systemsmatic-network
-    labels:
-      - "traefik.enable=true"
-      # Site principal
-      - "traefik.http.routers.frontend.rule=Host(`${DOMAIN}`)"
-      - "traefik.http.routers.frontend.entrypoints=websecure"
-      - "traefik.http.routers.frontend.tls.certresolver=letsencrypt"
-      - "traefik.http.services.frontend.loadbalancer.server.port=3000"
-      - "traefik.docker.network=systemsmatic-network"
-      # Back Office
-      - "traefik.http.routers.backoffice.rule=Host(`admin.${DOMAIN}`)"
-      - "traefik.http.routers.backoffice.entrypoints=websecure"
-      - "traefik.http.routers.backoffice.tls.certresolver=letsencrypt"
-      - "traefik.http.services.backoffice.loadbalancer.server.port=3000"
-      - "traefik.docker.network=systemsmatic-network"
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "wget",
-          "--no-verbose",
-          "--tries=1",
-          "--spider",
-          "http://localhost:3000",
-        ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      - systemsmatic-net
+
+  postgres:
+    image: postgres:15
+    container_name: systemsmatic-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - systemsmatic-net
+
+  redis:
+    image: redis:7
+    container_name: systemsmatic-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - systemsmatic-net
 
 volumes:
-  postgres_data:
-    driver: local
-  redis_data:
-    driver: local
-  traefik_letsencrypt:
-    driver: local
+  pgdata:
 
 networks:
-  systemsmatic-network:
+  systemsmatic-net:
     driver: bridge
