@@ -144,13 +144,13 @@ jobs:
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         with:
-          args: |
+          args: >
             ${{ 
               (needs.backend.result == 'success' && 
                needs.frontend.result == 'success' && 
                needs.e2e-tests.result == 'success') 
-               && "**Intégration continue réussie — System's Matic**" 
-               || "**Échec de l'intégration continue — System's Matic**"
+              && '**Intégration continue réussie — System''s Matic**' 
+              || '**Échec de l''intégration continue — System''s Matic**'
             }}
 
             Résultats des modules :
