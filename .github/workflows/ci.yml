@@ -52,12 +52,6 @@ jobs:
           DATABASE_URL: postgresql://test_user:test_pass@localhost:5432/test_db
           NODE_ENV: development
 
-      - name: Display backend coverage summary
-        if: always()
-        run: |
-          echo "Backend Coverage Summary:"
-          cat ./coverage/lcov-report/index.html | grep -A 1 "All files" || echo "Coverage report not found"
-
       - name: Upload backend coverage report
         uses: actions/upload-artifact@v4
         with:
@@ -145,28 +139,24 @@ jobs:
     if: always()
 
     steps:
-      - name: Success
-        if: success()
+      - name: Notify Discord (Dynamic Status)
         uses: Ilshidur/action-discord@master
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         with:
           args: |
-            **CI réussie !**
-            - Backend : OK
-            - Frontend : OK
-            - E2E : OK
-            **Coverage et rapports disponibles dans les artefacts.**
+            ${{ 
+              (needs.backend.result == 'success' && 
+               needs.frontend.result == 'success' && 
+               needs.e2e-tests.result == 'success') 
+               && "**Intégration continue réussie — System's Matic**" 
+               || "**Échec de l'intégration continue — System's Matic**"
+            }}
 
-      - name: Failure
-        if: failure()
-        uses: Ilshidur/action-discord@master
-        env:
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-        with:
-          args: |
-            **CI échouée !**
+            Résultats des modules :
             - Backend : ${{ needs.backend.result }}
             - Frontend : ${{ needs.frontend.result }}
             - E2E : ${{ needs.e2e-tests.result }}
-            **Logs :** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+            Consulter les logs détaillés :
+            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
