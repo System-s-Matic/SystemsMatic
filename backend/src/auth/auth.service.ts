@@ -22,8 +22,11 @@ export class AuthService {
       user.isActive &&
       (await bcrypt.compare(password, user.password))
     ) {
-      return user;
+      // Retirer le mot de passe avant de retourner l'utilisateur
+      const { password: _, ...safeUser } = user;
+      return safeUser;
     }
+
     return null;
   }
 
