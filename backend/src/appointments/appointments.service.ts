@@ -30,15 +30,7 @@ export class AppointmentsService {
    * @returns Rendez-vous créé avec contact
    */
   async create(dto: CreateAppointmentDto) {
-    const {
-      email,
-      firstName,
-      lastName,
-      phone,
-      requestedAt,
-      timezone,
-      consent,
-    } = dto;
+    const { email, firstName, lastName, phone, requestedAt, consent } = dto;
 
     try {
       const contact = await this.crud.upsertContact({
