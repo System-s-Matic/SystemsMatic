@@ -23,7 +23,8 @@ export class AuthService {
       (await bcrypt.compare(password, user.password))
     ) {
       // Retirer le mot de passe avant de retourner l'utilisateur
-      const { password: _, ...safeUser } = user;
+      const safeUser = { ...user };
+      delete safeUser.password;
       return safeUser;
     }
 

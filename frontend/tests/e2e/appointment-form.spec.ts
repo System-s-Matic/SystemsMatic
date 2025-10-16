@@ -1,9 +1,9 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, Page, Route } from "@playwright/test";
 
 test.describe("Formulaire de rendez-vous — Page d'accueil", () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page }: { page: Page }) => {
     // Interception de la requête POST vers l'API
-    await page.route("**/*appointments*", async (route) => {
+    await page.route("**/*appointments*", async (route: Route) => {
       console.log("Intercepted request:", route.request().url());
       await route.fulfill({
         status: 201,
@@ -20,6 +20,8 @@ test.describe("Formulaire de rendez-vous — Page d'accueil", () => {
 
   test("soumet un formulaire valide et affiche le message de succès", async ({
     page,
+  }: {
+    page: Page;
   }) => {
     // Renseigner les champs obligatoires
     await page.fill("input#firstName", "Jean");
@@ -73,6 +75,8 @@ test.describe("Formulaire de rendez-vous — Page d'accueil", () => {
 
   test("affiche les erreurs de validation si le formulaire est incomplet", async ({
     page,
+  }: {
+    page: Page;
   }) => {
     // Cliquer sur le bouton de soumission sans remplir le formulaire
     await page.click('#appointment-form button[type="submit"]');
@@ -104,6 +108,8 @@ test.describe("Formulaire de rendez-vous — Page d'accueil", () => {
 
   test("affiche les erreurs de validation si le formulaire est partiellement rempli", async ({
     page,
+  }: {
+    page: Page;
   }) => {
     // Remplir seulement le prénom
     await page.fill("input#firstName", "Jean");
