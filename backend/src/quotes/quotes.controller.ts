@@ -12,12 +12,22 @@ import {
   Logger,
   UseGuards,
 } from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiQuery,
+  ApiBody,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { QuotesService } from './quotes.service';
 import { CreateQuoteDto } from './dto/create-quote.dto';
 import { UpdateQuoteDto } from './dto/update-quote.dto';
 import { QuoteFilterDto } from './dto/quote-filter.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
+@ApiTags('Devis')
 @Controller('quotes')
 export class QuotesController {
   private readonly logger = new Logger(QuotesController.name);
@@ -25,6 +35,16 @@ export class QuotesController {
   constructor(private readonly quotesService: QuotesService) {}
 
   @Post()
+  @ApiOperation({ summary: 'Créer une nouvelle demande de devis' })
+  @ApiResponse({
+    status: 201,
+    description: 'Demande de devis créée avec succès',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Données invalides ou conditions générales non acceptées',
+  })
+  @ApiBody({ type: CreateQuoteDto })
   async create(@Body(new ValidationPipe()) createQuoteDto: CreateQuoteDto) {
     try {
       this.logger.log('Nouvelle demande de devis reçue');
@@ -62,6 +82,32 @@ export class QuotesController {
 
   @UseGuards(JwtAuthGuard)
   @Get()
+  @ApiOperation({
+    summary: 'Récupérer la liste des devis avec filtres (Admin)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Liste des devis récupérée avec succès',
+  })
+  @ApiResponse({ status: 401, description: 'Non authentifié' })
+  @ApiQuery({ name: 'page', required: false, description: 'Numéro de page' })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: "Nombre d'éléments par page",
+  })
+  @ApiQuery({ name: 'status', required: false, description: 'Statut du devis' })
+  @ApiQuery({
+    name: 'contactId',
+    required: false,
+    description: 'ID du contact',
+  })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    description: 'Recherche par nom ou email',
+  })
+  @ApiBearerAuth()
   async findAll(@Query(new ValidationPipe()) filters: QuoteFilterDto) {
     try {
       const page = parseInt(filters.page || '1');
@@ -79,6 +125,13 @@ export class QuotesController {
 
   @UseGuards(JwtAuthGuard)
   @Get('stats')
+  @ApiOperation({ summary: 'Récupérer les statistiques des devis (Admin)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Statistiques récupérées avec succès',
+  })
+  @ApiResponse({ status: 401, description: 'Non authentifié' })
+  @ApiBearerAuth()
   async getStats() {
     try {
       return await this.quotesService.getStats();
@@ -96,6 +149,12 @@ export class QuotesController {
 
   @UseGuards(JwtAuthGuard)
   @Get(':id')
+  @ApiOperation({ summary: 'Récupérer un devis par son ID (Admin)' })
+  @ApiParam({ name: 'id', description: 'ID du devis' })
+  @ApiResponse({ status: 200, description: 'Devis récupéré avec succès' })
+  @ApiResponse({ status: 404, description: 'Devis non trouvé' })
+  @ApiResponse({ status: 401, description: 'Non authentifié' })
+  @ApiBearerAuth()
   async findOne(@Param('id') id: string) {
     try {
       const quote = await this.quotesService.findOne(id);
@@ -120,6 +179,13 @@ export class QuotesController {
 
   @UseGuards(JwtAuthGuard)
   @Put(':id')
+  @ApiOperation({ summary: 'Mettre à jour un devis (Admin)' })
+  @ApiParam({ name: 'id', description: 'ID du devis' })
+  @ApiResponse({ status: 200, description: 'Devis mis à jour avec succès' })
+  @ApiResponse({ status: 404, description: 'Devis non trouvé' })
+  @ApiResponse({ status: 401, description: 'Non authentifié' })
+  @ApiBody({ type: UpdateQuoteDto })
+  @ApiBearerAuth()
   async update(
     @Param('id') id: string,
     @Body(new ValidationPipe()) updateQuoteDto: UpdateQuoteDto,
@@ -145,6 +211,21 @@ export class QuotesController {
 
   @UseGuards(JwtAuthGuard)
   @Put(':id/status')
+  @ApiOperation({ summary: "Mettre à jour le statut d'un devis (Admin)" })
+  @ApiParam({ name: 'id', description: 'ID du devis' })
+  @ApiResponse({ status: 200, description: 'Statut mis à jour avec succès' })
+  @ApiResponse({ status: 404, description: 'Devis non trouvé' })
+  @ApiResponse({ status: 401, description: 'Non authentifié' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        status: { type: 'string' },
+        data: { type: 'object' },
+      },
+    },
+  })
+  @ApiBearerAuth()
   async updateStatus(
     @Param('id') id: string,
     @Body() body: { status: string; data?: any },
@@ -173,6 +254,22 @@ export class QuotesController {
 
   @UseGuards(JwtAuthGuard)
   @Put(':id/accept')
+  @ApiOperation({ summary: 'Accepter un devis (Admin)' })
+  @ApiParam({ name: 'id', description: 'ID du devis' })
+  @ApiResponse({ status: 200, description: 'Devis accepté avec succès' })
+  @ApiResponse({ status: 404, description: 'Devis non trouvé' })
+  @ApiResponse({ status: 400, description: 'Devis non acceptables' })
+  @ApiResponse({ status: 401, description: 'Non authentifié' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        document: { type: 'string' },
+        validUntil: { type: 'string' },
+      },
+    },
+  })
+  @ApiBearerAuth()
   async acceptQuote(
     @Param('id') id: string,
     @Body() body: { document?: string; validUntil?: string },
@@ -205,6 +302,25 @@ export class QuotesController {
 
   @UseGuards(JwtAuthGuard)
   @Put(':id/reject')
+  @ApiOperation({ summary: 'Rejeter un devis (Admin)' })
+  @ApiParam({ name: 'id', description: 'ID du devis' })
+  @ApiResponse({ status: 200, description: 'Devis rejeté avec succès' })
+  @ApiResponse({ status: 404, description: 'Devis non trouvé' })
+  @ApiResponse({
+    status: 400,
+    description: 'Devis non rejetables ou raison manquante',
+  })
+  @ApiResponse({ status: 401, description: 'Non authentifié' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        rejectionReason: { type: 'string' },
+      },
+      required: ['rejectionReason'],
+    },
+  })
+  @ApiBearerAuth()
   async rejectQuote(
     @Param('id') id: string,
     @Body() body: { rejectionReason: string },

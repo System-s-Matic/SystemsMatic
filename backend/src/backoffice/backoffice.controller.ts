@@ -10,6 +10,13 @@ import {
   UseGuards,
   Request,
 } from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiQuery,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { AppointmentsService } from '../appointments/appointments.service';
 import { QuotesService } from '../quotes/quotes.service';
 import { QueueMonitorService } from '../queue/queue-monitor.service';
@@ -18,6 +25,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AdminGuard } from '../auth/guards/admin.guard';
 import { UpdateQuoteDto } from '../quotes/dto/update-quote.dto';
 
+@ApiTags('Backoffice (Admin)')
 @Controller('backoffice')
 @UseGuards(JwtAuthGuard, AdminGuard)
 export class BackofficeController {
@@ -28,22 +36,54 @@ export class BackofficeController {
   ) {}
 
   @Get('appointments')
+  @ApiOperation({ summary: 'Récupérer tous les rendez-vous (Admin)' })
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    description: 'Filtrer par statut',
+  })
+  @ApiResponse({ status: 200, description: 'Liste des rendez-vous récupérée' })
+  @ApiResponse({ status: 401, description: 'Non authentifié' })
+  @ApiResponse({ status: 403, description: 'Accès refusé - Admin requis' })
+  @ApiBearerAuth()
   async getAppointments(@Query('status') status?: AppointmentStatus) {
     return this.appointmentsService.findAllAdmin(status);
   }
 
   @Get('appointments/pending')
+  @ApiOperation({ summary: 'Récupérer les rendez-vous en attente (Admin)' })
+  @ApiResponse({ status: 200, description: 'Liste des rendez-vous en attente' })
+  @ApiResponse({ status: 401, description: 'Non authentifié' })
+  @ApiResponse({ status: 403, description: 'Accès refusé - Admin requis' })
+  @ApiBearerAuth()
   async getPendingAppointments() {
     return this.appointmentsService.findAllAdmin('PENDING');
   }
 
   @Get('appointments/upcoming')
+  @ApiOperation({ summary: 'Récupérer les rendez-vous à venir (Admin)' })
+  @ApiQuery({
+    name: 'days',
+    required: false,
+    description: 'Nombre de jours à venir (défaut: 7)',
+  })
+  @ApiResponse({ status: 200, description: 'Liste des rendez-vous à venir' })
+  @ApiResponse({ status: 401, description: 'Non authentifié' })
+  @ApiResponse({ status: 403, description: 'Accès refusé - Admin requis' })
+  @ApiBearerAuth()
   async getUpcomingAppointments(@Query('days') days?: string) {
     const daysNumber = days ? parseInt(days, 10) : 7;
     return this.appointmentsService.getUpcomingAdmin(daysNumber);
   }
 
   @Get('appointments/stats')
+  @ApiOperation({
+    summary: 'Récupérer les statistiques des rendez-vous (Admin)',
+  })
+  @ApiResponse({ status: 200, description: 'Statistiques des rendez-vous' })
+  @ApiResponse({ status: 401, description: 'Non authentifié' })
+  @ApiResponse({ status: 403, description: 'Accès refusé - Admin requis' })
+  @ApiBearerAuth()
   async getStats() {
     return this.appointmentsService.getStatsAdmin();
   }

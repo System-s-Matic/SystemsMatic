@@ -8,8 +8,17 @@ import {
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiQuery,
+  ApiBody,
+} from '@nestjs/swagger';
 import { EmailActionsService } from './email-actions.service';
 
+@ApiTags('Actions Email')
 @Controller('email-actions')
 export class EmailActionsController {
   constructor(private readonly emailActionsService: EmailActionsService) {}
@@ -18,6 +27,14 @@ export class EmailActionsController {
    * Accepter un rendez-vous via email (GET pour les liens email)
    */
   @Get('appointments/:id/accept')
+  @ApiOperation({ summary: 'Accepter un rendez-vous via email (GET)' })
+  @ApiParam({ name: 'id', description: 'ID du rendez-vous' })
+  @ApiQuery({ name: 'token', description: "Token d'acceptation" })
+  @ApiResponse({ status: 200, description: 'Rendez-vous accepté avec succès' })
+  @ApiResponse({
+    status: 400,
+    description: 'Token invalide ou rendez-vous non acceptables',
+  })
   async acceptAppointmentGet(
     @Param('id') id: string,
     @Query('token') token: string,
@@ -43,6 +60,23 @@ export class EmailActionsController {
    * Accepter un rendez-vous via email (POST pour API)
    */
   @Post('appointments/:id/accept')
+  @ApiOperation({ summary: 'Accepter un rendez-vous via email (POST)' })
+  @ApiParam({ name: 'id', description: 'ID du rendez-vous' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        scheduledAt: { type: 'string' },
+        token: { type: 'string' },
+      },
+      required: ['token'],
+    },
+  })
+  @ApiResponse({ status: 200, description: 'Rendez-vous accepté avec succès' })
+  @ApiResponse({
+    status: 400,
+    description: 'Token invalide ou données invalides',
+  })
   async acceptAppointment(
     @Param('id') id: string,
     @Body() data: { scheduledAt?: string; token: string },
