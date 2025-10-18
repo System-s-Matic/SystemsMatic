@@ -1,5 +1,9 @@
 name: Continuous Integration — System's Matic
 
+permissions:
+  contents: read
+  pull-requests: read
+
 on:
   workflow_dispatch:
   push:
