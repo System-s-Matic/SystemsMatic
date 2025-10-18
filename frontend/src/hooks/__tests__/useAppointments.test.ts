@@ -222,4 +222,245 @@ describe("useAppointments", () => {
       expect(result.current.filter).toBe("PENDING");
     });
   });
+
+  describe("deleteAppointment", () => {
+    beforeEach(() => {
+      mockedBackofficeApi.getAppointments.mockResolvedValue([]);
+      mockedBackofficeApi.getStats.mockResolvedValue({});
+    });
+
+    it("devrait supprimer un rendez-vous avec succès", async () => {
+      // Mock de la fonction confirm pour retourner true
+      const confirmSpy = jest.spyOn(window, "confirm").mockReturnValue(true);
+      mockedBackofficeApi.deleteAppointment.mockResolvedValue(undefined);
+
+      const { result } = renderHook(() => useAppointments());
+
+      await act(async () => {
+        await result.current.deleteAppointment("appointment-1");
+      });
+
+      expect(confirmSpy).toHaveBeenCalledWith(
+        "Êtes-vous sûr de vouloir supprimer ce rendez-vous ?"
+      );
+      expect(mockedBackofficeApi.deleteAppointment).toHaveBeenCalledWith(
+        "appointment-1"
+      );
+      expect(mockedBackofficeApi.getAppointments).toHaveBeenCalled();
+      expect(mockedBackofficeApi.getStats).toHaveBeenCalled();
+      expect(mockedShowSuccess).toHaveBeenCalledWith(
+        "Rendez-vous supprimé avec succès"
+      );
+
+      confirmSpy.mockRestore();
+    });
+
+    it("ne devrait pas supprimer si l'utilisateur annule", async () => {
+      // Mock de la fonction confirm pour retourner false
+      const confirmSpy = jest.spyOn(window, "confirm").mockReturnValue(false);
+
+      const { result } = renderHook(() => useAppointments());
+
+      await act(async () => {
+        await result.current.deleteAppointment("appointment-1");
+      });
+
+      expect(confirmSpy).toHaveBeenCalledWith(
+        "Êtes-vous sûr de vouloir supprimer ce rendez-vous ?"
+      );
+      expect(mockedBackofficeApi.deleteAppointment).not.toHaveBeenCalled();
+      expect(mockedShowSuccess).not.toHaveBeenCalled();
+
+      confirmSpy.mockRestore();
+    });
+
+    it("devrait gérer les erreurs lors de la suppression", async () => {
+      const confirmSpy = jest.spyOn(window, "confirm").mockReturnValue(true);
+      const mockError = new Error("Erreur suppression");
+      mockedBackofficeApi.deleteAppointment.mockRejectedValue(mockError);
+
+      const consoleSpy = jest.spyOn(console, "error").mockImplementation();
+
+      const { result } = renderHook(() => useAppointments());
+
+      await act(async () => {
+        await result.current.deleteAppointment("appointment-1");
+      });
+
+      expect(consoleSpy).toHaveBeenCalledWith(
+        "Erreur lors de la suppression:",
+        mockError
+      );
+      expect(mockedShowError).toHaveBeenCalledWith(
+        "Erreur lors de la suppression du rendez-vous"
+      );
+
+      confirmSpy.mockRestore();
+      consoleSpy.mockRestore();
+    });
+  });
+
+  describe("sendReminder", () => {
+    it("devrait envoyer un rappel avec succès", async () => {
+      mockedBackofficeApi.sendReminder.mockResolvedValue(undefined);
+
+      const { result } = renderHook(() => useAppointments());
+
+      await act(async () => {
+        await result.current.sendReminder("appointment-1");
+      });
+
+      expect(mockedBackofficeApi.sendReminder).toHaveBeenCalledWith(
+        "appointment-1"
+      );
+      expect(mockedShowSuccess).toHaveBeenCalledWith(
+        "Rappel envoyé avec succès"
+      );
+    });
+
+    it("devrait gérer les erreurs lors de l'envoi du rappel", async () => {
+      const mockError = new Error("Erreur envoi rappel");
+      mockedBackofficeApi.sendReminder.mockRejectedValue(mockError);
+
+      const consoleSpy = jest.spyOn(console, "error").mockImplementation();
+
+      const { result } = renderHook(() => useAppointments());
+
+      await act(async () => {
+        await result.current.sendReminder("appointment-1");
+      });
+
+      expect(consoleSpy).toHaveBeenCalledWith(
+        "Erreur lors de l'envoi du rappel:",
+        mockError
+      );
+      expect(mockedShowError).toHaveBeenCalledWith(
+        "Erreur lors de l'envoi du rappel"
+      );
+
+      consoleSpy.mockRestore();
+    });
+  });
+
+  describe("getStatusLabel", () => {
+    it("devrait retourner les bons labels pour chaque statut", () => {
+      const { result } = renderHook(() => useAppointments());
+
+      expect(result.current.getStatusLabel(AppointmentStatus.PENDING)).toBe(
+        "En attente"
+      );
+      expect(result.current.getStatusLabel(AppointmentStatus.CONFIRMED)).toBe(
+        "Confirmé"
+      );
+      expect(result.current.getStatusLabel(AppointmentStatus.RESCHEDULED)).toBe(
+        "Demande de reprogrammation en cours"
+      );
+      expect(result.current.getStatusLabel(AppointmentStatus.CANCELLED)).toBe(
+        "Annulé"
+      );
+      expect(result.current.getStatusLabel(AppointmentStatus.REJECTED)).toBe(
+        "Rejeté"
+      );
+      expect(result.current.getStatusLabel(AppointmentStatus.COMPLETED)).toBe(
+        "Terminé"
+      );
+      expect(
+        result.current.getStatusLabel("UNKNOWN" as AppointmentStatus)
+      ).toBe("UNKNOWN");
+    });
+  });
+
+  describe("getStatusColor", () => {
+    it("devrait retourner les bonnes classes CSS pour chaque statut", () => {
+      const { result } = renderHook(() => useAppointments());
+
+      expect(result.current.getStatusColor(AppointmentStatus.PENDING)).toBe(
+        "status-pending"
+      );
+      expect(result.current.getStatusColor(AppointmentStatus.CONFIRMED)).toBe(
+        "status-confirmed"
+      );
+      expect(result.current.getStatusColor(AppointmentStatus.RESCHEDULED)).toBe(
+        "status-rescheduled"
+      );
+      expect(result.current.getStatusColor(AppointmentStatus.CANCELLED)).toBe(
+        "status-cancelled"
+      );
+      expect(result.current.getStatusColor(AppointmentStatus.REJECTED)).toBe(
+        "status-rejected"
+      );
+      expect(result.current.getStatusColor(AppointmentStatus.COMPLETED)).toBe(
+        "status-completed"
+      );
+      expect(
+        result.current.getStatusColor("UNKNOWN" as AppointmentStatus)
+      ).toBe("");
+    });
+  });
+
+  describe("updateAppointmentStatus - Messages de succès", () => {
+    beforeEach(() => {
+      mockedBackofficeApi.updateAppointmentStatus.mockResolvedValue(undefined);
+      mockedBackofficeApi.getAppointments.mockResolvedValue([]);
+      mockedBackofficeApi.getStats.mockResolvedValue({});
+    });
+
+    it("devrait afficher le bon message pour CONFIRMED", async () => {
+      const { result } = renderHook(() => useAppointments());
+
+      await act(async () => {
+        await result.current.updateAppointmentStatus(
+          "appointment-1",
+          AppointmentStatus.CONFIRMED
+        );
+      });
+
+      expect(mockedShowSuccess).toHaveBeenCalledWith(
+        "Rendez-vous confirmé avec succès"
+      );
+    });
+
+    it("devrait afficher le bon message pour REJECTED", async () => {
+      const { result } = renderHook(() => useAppointments());
+
+      await act(async () => {
+        await result.current.updateAppointmentStatus(
+          "appointment-1",
+          AppointmentStatus.REJECTED
+        );
+      });
+
+      expect(mockedShowSuccess).toHaveBeenCalledWith("Rendez-vous rejeté");
+    });
+
+    it("devrait afficher le bon message pour COMPLETED", async () => {
+      const { result } = renderHook(() => useAppointments());
+
+      await act(async () => {
+        await result.current.updateAppointmentStatus(
+          "appointment-1",
+          AppointmentStatus.COMPLETED
+        );
+      });
+
+      expect(mockedShowSuccess).toHaveBeenCalledWith(
+        "Rendez-vous marqué comme terminé"
+      );
+    });
+
+    it("devrait afficher le message par défaut pour les autres statuts", async () => {
+      const { result } = renderHook(() => useAppointments());
+
+      await act(async () => {
+        await result.current.updateAppointmentStatus(
+          "appointment-1",
+          AppointmentStatus.PENDING
+        );
+      });
+
+      expect(mockedShowSuccess).toHaveBeenCalledWith(
+        "Statut mis à jour avec succès"
+      );
+    });
+  });
 });
