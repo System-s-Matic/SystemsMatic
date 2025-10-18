@@ -33,7 +33,7 @@ jest.mock("../AppointmentForm", () => {
               lastName: "Dupont",
               email: "jean@example.com",
               phone: "0123456789",
-              reason: "DIAGNOSTIC",
+              reason: AppointmentReason.DIAGNOSTIC,
               reasonOther: undefined,
               message: "Test message",
               requestedAt: "2024-01-15T10:00:00.000Z",
