@@ -80,7 +80,8 @@ export default function HomeClient() {
           <div className="services-header">
             <h2 className="heading-2 services-title">Nos Services</h2>
             <p className="subtitle services-subtitle">
-              Des solutions d'automatisation complètes pour tous vos projets
+              Des solutions d&apos;automatisation complètes pour tous vos
+              projets
             </p>
           </div>
 
@@ -128,7 +129,7 @@ export default function HomeClient() {
               </div>
               <h3 className="service-name">Automatismes</h3>
               <p className="service-description">
-                Solutions d'automatisation pour portes et portails
+                Solutions d&apos;automatisation pour portes et portails
               </p>
               <ul className="service-features">
                 <li>Portails automatiques</li>
@@ -158,8 +159,8 @@ export default function HomeClient() {
                 <li>Ascenseurs privatifs</li>
                 <li>Élévateurs PMR</li>
                 <li>Monte-charges</li>
-                <li>Rampes d'accès motorisées</li>
-                <li>Solutions d'accessibilité</li>
+                <li>Rampes d&apos;accès motorisées</li>
+                <li>Solutions d&apos;accessibilité</li>
               </ul>
             </div>
           </div>
@@ -172,8 +173,8 @@ export default function HomeClient() {
             <h2 className="section-title">Notre entreprise</h2>
             <p className="section-subtitle">
               Bénéficiez de notre professionnalisme, de notre disponibilité et
-              de nos conseils pour la pose de vos portes d'entrée, de garage et
-              de vos portails. Vous souhaitez quelques précisions ?
+              de nos conseils pour la pose de vos portes d&apos;entrée, de
+              garage et de vos portails. Vous souhaitez quelques précisions ?
               Contactez-nous par e-mail ou par téléphone dès maintenant.
             </p>
           </div>
@@ -190,14 +191,14 @@ export default function HomeClient() {
               <h3>Expérience</h3>
               <p>
                 Nous mettons à votre disposition notre savoir-faire et plus de
-                30 ans d'expérience.
+                30 ans d&apos;expérience.
               </p>
             </div>
             <div className="feature-card">
               <h3>Clientèle</h3>
               <p>
                 Entreprises et particuliers : équipez votre structure
-                d'automatismes performants et fiables.
+                d&apos;automatismes performants et fiables.
               </p>
             </div>
             <div className="feature-card">
@@ -229,7 +230,7 @@ export default function HomeClient() {
       <section className="section zone-section">
         <div className="container">
           <div className="section-header">
-            <h2 className="section-title">Zone d'intervention</h2>
+            <h2 className="section-title">Zone d&apos;intervention</h2>
             <p className="section-subtitle">Guadeloupe et alentours</p>
           </div>
           <div className="contact-cta">

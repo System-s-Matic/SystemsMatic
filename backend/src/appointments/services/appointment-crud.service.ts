@@ -2,7 +2,6 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AppointmentStatus } from '@prisma/client';
 import { CreateAppointmentDto } from '../dto/create-appointments.dto';
-import { ConfirmAppointmentDto } from '../dto/confirm-appointments.dto';
 
 /**
  * Service CRUD pour les opérations de base des rendez-vous

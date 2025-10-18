@@ -65,8 +65,6 @@ export class AppointmentAdminService {
    * Annule un rendez-vous (admin)
    */
   async cancelAppointment(id: string) {
-    const appointment = await this.crud.findByIdAdmin(id);
-
     // Annuler le rappel si il existe
     await this.reminder.deleteReminder(id);
 
@@ -85,8 +83,6 @@ export class AppointmentAdminService {
    * Reprogramme un rendez-vous (admin)
    */
   async reschedule(id: string, data: { scheduledAt: string }) {
-    const appointment = await this.crud.findByIdAdmin(id);
-
     // Annuler l'ancien rappel si il existe
     await this.reminder.deleteReminder(id);
 
@@ -109,8 +105,6 @@ export class AppointmentAdminService {
    * Supprime un rendez-vous (admin)
    */
   async delete(id: string) {
-    const appointment = await this.crud.findByIdAdmin(id);
-
     // Annuler le rappel si il existe
     await this.reminder.deleteReminder(id);
 

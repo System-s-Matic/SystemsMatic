@@ -42,7 +42,7 @@ export default function QuoteAcceptModal({
             <div className="quote-accept-info">
               <p>
                 <strong>⚠️ Attention :</strong> En acceptant ce devis, un email
-                sera automatiquement envoyé au client pour l'informer que vous
+                sera automatiquement envoyé au client pour l&apos;informer que vous
                 allez le recontacter dans les plus brefs délais.
               </p>
             </div>
@@ -61,12 +61,12 @@ export default function QuoteAcceptModal({
                 placeholder="https://exemple.com/devis.pdf"
               />
               <small>
-                Si vous avez un devis PDF à joindre, renseignez l'URL ici
+                Si vous avez un devis PDF à joindre, renseignez l&apos;URL ici
               </small>
             </div>
 
             <div className="quote-form-group">
-              <label>Valide jusqu'au (optionnel)</label>
+              <label>Valide jusqu&apos;au (optionnel)</label>
               <input
                 type="date"
                 value={formData.validUntil || ""}
@@ -77,7 +77,7 @@ export default function QuoteAcceptModal({
                   }))
                 }
               />
-              <small>Date d'expiration du devis (optionnel)</small>
+              <small>Date d&apos;expiration du devis (optionnel)</small>
             </div>
 
             <div className="quote-project-summary">

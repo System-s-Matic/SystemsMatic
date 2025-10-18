@@ -61,7 +61,7 @@ export default function QuoteEditModal({
 
             <div className="quote-form-group">
               <label>
-                Valide jusqu'au
+                Valide jusqu&apos;au
                 {formData.status === "SENT" && (
                   <span style={{ color: "#dc2626", marginLeft: "4px" }}>*</span>
                 )}
@@ -79,7 +79,7 @@ export default function QuoteEditModal({
               />
               {formData.status === "SENT" && (
                 <small style={{ color: "#dc2626" }}>
-                  Obligatoire pour le statut "Envoyé"
+                  Obligatoire pour le statut &quot;Envoyé&quot;
                 </small>
               )}
             </div>
@@ -105,7 +105,7 @@ export default function QuoteEditModal({
               />
               {formData.status === "SENT" && (
                 <small style={{ color: "#dc2626" }}>
-                  Obligatoire pour le statut "Envoyé"
+                  Obligatoire pour le statut &quot;Envoyé&quot;
                 </small>
               )}
             </div>

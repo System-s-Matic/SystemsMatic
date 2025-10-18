@@ -116,7 +116,7 @@ export default function AcceptQuotePage() {
                   )}
                   {quote.validUntil && (
                     <div className="detail-item">
-                      <strong>Valide jusqu'au :</strong>{" "}
+                      <strong>Valide jusqu&apos;au :</strong>{" "}
                       {new Date(quote.validUntil).toLocaleDateString("fr-FR")}
                     </div>
                   )}
@@ -136,7 +136,7 @@ export default function AcceptQuotePage() {
           )}
 
           <a href="/" className="appointment-action-button">
-            Retour à l'accueil
+            Retour à l&apos;accueil
           </a>
         </div>
       </div>

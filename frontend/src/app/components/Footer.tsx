@@ -158,7 +158,7 @@ export default function Footer() {
         <div className="footer__bottom">
           <div className="footer__copyright">
             <p className="footer__copyright-text">
-              © 2025 System's Matic. Tous droits réservés.
+              © 2025 System&apos;s Matic. Tous droits réservés.
             </p>
           </div>
           <div className="footer__legal">
@@ -166,7 +166,7 @@ export default function Footer() {
               Politique de confidentialité
             </Link>
             <Link href="/terms" className="footer__legal-link">
-              Conditions d'utilisation
+              Conditions d&apos;utilisation
             </Link>
           </div>
         </div>

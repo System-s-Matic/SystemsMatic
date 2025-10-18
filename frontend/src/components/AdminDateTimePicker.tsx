@@ -144,9 +144,9 @@ export default function AdminDateTimePicker({
       <div className="date-constraints-info">
         <p>Contraintes :</p>
         <ul>
-          <li>Minimum 24h à l'avance</li>
+          <li>Minimum 24h à l&apos;avance</li>
           <li>Créneaux disponibles : 8h-12h et 14h-17h (toutes les 30 min)</li>
-          <li>Maximum 1 mois à l'avance</li>
+          <li>Maximum 1 mois à l&apos;avance</li>
         </ul>
       </div>
 

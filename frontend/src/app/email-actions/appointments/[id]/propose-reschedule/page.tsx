@@ -229,7 +229,7 @@ export default function ProposeReschedulePage() {
             )}
 
             <a href="/" className="appointment-action-button">
-              Retour à l'accueil
+              Retour à l&apos;accueil
             </a>
           </div>
         </div>
@@ -246,7 +246,7 @@ export default function ProposeReschedulePage() {
             <h2 className="appointment-action-title">Erreur</h2>
             <p className="appointment-action-message">{message}</p>
             <a href="/" className="appointment-action-button">
-              Retour à l'accueil
+              Retour à l&apos;accueil
             </a>
           </div>
         </div>
@@ -306,7 +306,7 @@ export default function ProposeReschedulePage() {
               />
               <p className="form-help">
                 Choisissez une nouvelle date (à partir du lendemain et dans un
-                délai maximum d'1 mois). Créneaux disponibles : 8h-12h et
+                délai maximum d&apos;1 mois). Créneaux disponibles : 8h-12h et
                 14h-17h (toutes les 30 minutes).
               </p>
               <p className="form-help timezone-info">

@@ -6,9 +6,7 @@ import {
   Patch,
   Post,
   Query,
-  Req,
 } from '@nestjs/common';
-import { Request } from 'express';
 import { AppointmentsService } from './appointments.service';
 import { CreateAppointmentDto } from '../appointments/dto/create-appointments.dto';
 import { ConfirmAppointmentDto } from '../appointments/dto/confirm-appointments.dto';
@@ -18,7 +16,7 @@ export class AppointmentsController {
   constructor(private readonly appointmentsService: AppointmentsService) {}
 
   @Post()
-  create(@Body() dto: CreateAppointmentDto, @Req() req: Request) {
+  create(@Body() dto: CreateAppointmentDto) {
     return this.appointmentsService.create(dto);
   }
 

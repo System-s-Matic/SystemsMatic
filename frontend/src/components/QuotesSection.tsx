@@ -110,7 +110,7 @@ export default function QuotesSection({
                 </p>
                 {quote.quoteValidUntil && (
                   <p>
-                    <strong>Valide jusqu'au :</strong>{" "}
+                    <strong>Valide jusqu&apos;au :</strong>{" "}
                     {formatCreatedDate(quote.quoteValidUntil)}
                   </p>
                 )}

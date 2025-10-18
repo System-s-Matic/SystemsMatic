@@ -4,23 +4,16 @@ import { useState, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import NativeDateTimePicker from "./NativeDateTimePicker";
 import { CreateAppointmentDto, AppointmentReason } from "../types/appointment";
-import {
-  getCurrentGuadeloupeTime,
-  getMinimumBookingDate,
-  convertToUTC,
-  getUserTimezone,
-  getUserTimezoneDisplayName,
-} from "../lib/date-utils";
+import { getUserTimezone, getUserTimezoneDisplayName } from "../lib/date-utils";
 import { sanitizers } from "../lib/validation";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+import { showError } from "../lib/toast";
 
-// Configuration des plugins dayjs
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-// Import des styles CSS
 import "../app/styles/appointment-form.css";
 import "../app/styles/native-datetime-picker.css";
 
@@ -28,15 +21,11 @@ interface AppointmentFormProps {
   onSubmit: (data: CreateAppointmentDto) => Promise<void>;
 }
 
-/**
- * Formulaire de demande de rendez-vous avec gestion des timezones
- * @param onSubmit Fonction appelée lors de la soumission
- */
 export default function AppointmentForm({ onSubmit }: AppointmentFormProps) {
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [showOtherReason, setShowOtherReason] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showOtherReason, setShowOtherReason] = useState(false);
   const [selectedDateTime, setSelectedDateTime] = useState<Date | null>(null);
-  const [timezoneDisplay, setTimezoneDisplay] = useState<string>("");
+  const [timezoneDisplay, setTimezoneDisplay] = useState("");
 
   const {
     register,
@@ -45,7 +34,10 @@ export default function AppointmentForm({ onSubmit }: AppointmentFormProps) {
     watch,
     reset,
     setValue,
+    trigger,
   } = useForm<CreateAppointmentDto>({
+    mode: "onBlur",
+    reValidateMode: "onChange",
     defaultValues: {
       firstName: "",
       lastName: "",
@@ -60,8 +52,6 @@ export default function AppointmentForm({ onSubmit }: AppointmentFormProps) {
     },
   });
 
-  const selectedReason = watch("reason");
-
   useEffect(() => {
     setTimezoneDisplay(getUserTimezoneDisplayName());
   }, []);
@@ -69,6 +59,8 @@ export default function AppointmentForm({ onSubmit }: AppointmentFormProps) {
   const handleDateChange = useCallback((date: Date | null) => {
     setSelectedDateTime(date);
   }, []);
+
+  // Synchroniser la date sélectionnée avec RHF
   useEffect(() => {
     if (selectedDateTime) {
       const year = selectedDateTime.getFullYear();
@@ -82,21 +74,21 @@ export default function AppointmentForm({ onSubmit }: AppointmentFormProps) {
       const localISOString = `${year}-${month}-${day}T${hours}:${minutes}:00.000`;
       const userTimezone = getUserTimezone();
       const dateWithOffset = dayjs.tz(localISOString, userTimezone).format();
-      setValue("requestedAt", dateWithOffset);
+
+      setValue("requestedAt", dateWithOffset, { shouldValidate: true });
+    } else {
+      setValue("requestedAt", "");
     }
   }, [selectedDateTime, setValue]);
 
   /**
-   * Gestionnaire de soumission du formulaire
-   * @param data Données validées du formulaire
+   * Soumission du formulaire
    */
   const onSubmitForm = async (data: CreateAppointmentDto) => {
     setIsSubmitting(true);
 
     try {
-      // Sanitiser toutes les données avant envoi
       const sanitizedData = sanitizers.form(data);
-
       const cleanedData: CreateAppointmentDto = {
         ...sanitizedData,
         reason: sanitizedData.reason as AppointmentReason | undefined,
@@ -115,9 +107,18 @@ export default function AppointmentForm({ onSubmit }: AppointmentFormProps) {
       setSelectedDateTime(null);
     } catch (error) {
       console.error("Erreur lors de la soumission du formulaire:", error);
+      showError("Une erreur est survenue lors de la soumission.");
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  /**
+   * Gestion des erreurs de validation
+   */
+  const onValidationError = async () => {
+    await trigger(); // Forcer la validation complète
+    showError("Veuillez corriger les erreurs dans le formulaire");
   };
 
   return (
@@ -130,7 +131,11 @@ export default function AppointmentForm({ onSubmit }: AppointmentFormProps) {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmitForm)} className="appointment-form">
+      <form
+        onSubmit={handleSubmit(onSubmitForm, onValidationError)}
+        className="appointment-form"
+        noValidate
+      >
         {/* Informations personnelles */}
         <div className="form-row">
           <div className="form-group">
@@ -205,6 +210,14 @@ export default function AppointmentForm({ onSubmit }: AppointmentFormProps) {
             Date et heure souhaitées
           </label>
 
+          {/* Connecte requestedAt à RHF */}
+          <input
+            type="hidden"
+            {...register("requestedAt", {
+              required: "La date et l'heure sont requises",
+            })}
+          />
+
           <NativeDateTimePicker
             value={selectedDateTime}
             onChange={handleDateChange}
@@ -215,11 +228,12 @@ export default function AppointmentForm({ onSubmit }: AppointmentFormProps) {
           {errors.requestedAt && (
             <p className="form-error">{errors.requestedAt.message}</p>
           )}
+
           <p className="form-help">
             Choisissez votre créneau préféré (à partir du lendemain et dans un
-            délai maximum d'1 mois). Créneaux disponibles : 8h-12h et 14h-17h
-            (toutes les 30 minutes). Nous vous confirmerons la disponibilité et
-            vous proposerons un horaire définitif.
+            délai maximum d&apos;1 mois). Créneaux disponibles : 8h-12h et
+            14h-17h (toutes les 30 minutes). Nous vous confirmerons la
+            disponibilité et vous proposerons un horaire définitif.
           </p>
           <p className="form-help timezone-info">
             <strong>Votre timezone détectée :</strong>{" "}
@@ -288,8 +302,8 @@ export default function AppointmentForm({ onSubmit }: AppointmentFormProps) {
           />
           <div className="form-checkbox-label">
             <label htmlFor="consent">
-              J'accepte que mes données personnelles soient traitées dans le
-              cadre de ma demande de rendez-vous.
+              J&apos;accepte que mes données personnelles soient traitées dans
+              le cadre de ma demande de rendez-vous.
             </label>
             {errors.consent && (
               <p id="consent-error" className="form-error" role="alert">

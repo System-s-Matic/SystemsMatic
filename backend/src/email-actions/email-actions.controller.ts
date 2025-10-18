@@ -2,7 +2,6 @@ import {
   Controller,
   Get,
   Post,
-  Put,
   Param,
   Body,
   Query,
@@ -10,7 +9,6 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { EmailActionsService } from './email-actions.service';
-import { AppointmentStatus } from '@prisma/client';
 
 @Controller('email-actions')
 export class EmailActionsController {

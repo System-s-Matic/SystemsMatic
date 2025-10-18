@@ -30,18 +30,7 @@ export class AppointmentsService {
    * @returns Rendez-vous créé avec contact
    */
   async create(dto: CreateAppointmentDto) {
-    const {
-      email,
-      firstName,
-      lastName,
-      phone,
-      reason,
-      reasonOther,
-      message,
-      requestedAt,
-      timezone,
-      consent,
-    } = dto;
+    const { email, firstName, lastName, phone, requestedAt, consent } = dto;
 
     try {
       const contact = await this.crud.upsertContact({
@@ -53,10 +42,8 @@ export class AppointmentsService {
       });
 
       const tokens = this.validation.generateSecurityTokens();
-      const processedRequestedAt = this.validation.processRequestedDate(
-        requestedAt,
-        timezone,
-      );
+      const processedRequestedAt =
+        this.validation.processRequestedDate(requestedAt);
 
       const appointment = await this.crud.create(
         dto,

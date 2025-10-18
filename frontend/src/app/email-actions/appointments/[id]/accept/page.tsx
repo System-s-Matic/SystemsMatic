@@ -137,7 +137,7 @@ export default function AcceptAppointmentPage() {
           )}
 
           <a href="/" className="appointment-action-button">
-            Retour à l'accueil
+            Retour à l&apos;accueil
           </a>
         </div>
       </div>

@@ -22,9 +22,12 @@ export class AuthService {
       user.isActive &&
       (await bcrypt.compare(password, user.password))
     ) {
-      const { password: _, ...result } = user;
-      return result;
+      // Retirer le mot de passe avant de retourner l'utilisateur
+      const safeUser = { ...user };
+      delete safeUser.password;
+      return safeUser;
     }
+
     return null;
   }
 
@@ -86,8 +89,6 @@ export class AuthService {
         role: registerDto.role || 'ADMIN',
       },
     });
-
-    const { password: _, ...userWithoutPassword } = user;
 
     // Créer le payload JWT
     const payload = {

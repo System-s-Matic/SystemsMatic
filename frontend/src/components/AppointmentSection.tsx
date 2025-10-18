@@ -5,6 +5,7 @@ import axios from "axios";
 import AppointmentForm from "./AppointmentForm";
 import { appointmentService } from "../lib/api";
 import { CreateAppointmentDto } from "../types/appointment";
+import { showError } from "../lib/toast";
 
 export default function AppointmentSection() {
   const [isFormSubmitted, setIsFormSubmitted] = useState(false);
@@ -28,22 +29,28 @@ export default function AppointmentSection() {
             error.response.data?.message ||
             `Erreur ${error.response.status}: ${error.response.statusText}`;
           setError(errorMessage);
+          showError(errorMessage);
         } else if (error.request) {
           // Erreur de réseau (pas de réponse)
-          setError(
-            "Impossible de contacter le serveur. Vérifiez votre connexion internet."
-          );
+          const networkError =
+            "Impossible de contacter le serveur. Vérifiez votre connexion internet.";
+          setError(networkError);
+          showError(networkError);
         } else {
           // Autre erreur
-          setError(error.message || "Une erreur inattendue s'est produite.");
+          const otherError =
+            error.message || "Une erreur inattendue s'est produite.";
+          setError(otherError);
+          showError(otherError);
         }
       } else {
         // Erreur non-axios
-        setError(
+        const genericError =
           error instanceof Error
             ? error.message
-            : "Une erreur est survenue. Veuillez réessayer."
-        );
+            : "Une erreur est survenue. Veuillez réessayer.";
+        setError(genericError);
+        showError(genericError);
       }
     }
   };

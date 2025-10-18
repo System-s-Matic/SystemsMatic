@@ -24,6 +24,7 @@ export default function NativeDateTimePicker({
   // États pour les inputs séparés
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [selectedTime, setSelectedTime] = useState<string>("");
+  const [localError, setLocalError] = useState<string | null>(null);
 
   // Calculer la date minimale (demain) et maximale (1 mois)
   const minDate = useMemo(() => {
@@ -78,17 +79,26 @@ export default function NativeDateTimePicker({
 
         const selectedDateTime = dayjs(localDate);
 
-        if (
-          selectedDateTime.isBefore(minBookingDate) ||
-          selectedDateTime.isAfter(maxBookingDate)
-        ) {
-          console.warn("Date sélectionnée hors de la plage autorisée");
+        if (selectedDateTime.isBefore(minBookingDate)) {
+          setLocalError(
+            "Les rendez-vous doivent être pris à partir du lendemain"
+          );
+          onChange(null);
+          return;
+        }
+
+        if (selectedDateTime.isAfter(maxBookingDate)) {
+          setLocalError(
+            "Les rendez-vous ne peuvent pas être planifiés au-delà d'un mois"
+          );
           onChange(null);
           return;
         }
 
         onChange(localDate);
+        setLocalError(null);
       } else {
+        setLocalError("La date et l'heure sont requises");
         onChange(null);
       }
     },
@@ -191,6 +201,7 @@ export default function NativeDateTimePicker({
           {formatLocalDateTime(value, "dddd DD MMMM YYYY à HH:mm")}
         </div>
       )}
+      {localError && <p className="form-error">{localError}</p>}
     </div>
   );
 }

@@ -266,6 +266,124 @@ export const validatePattern = (
   return { isValid: true };
 };
 
+/**
+ * Valide un numéro de téléphone (version générique)
+ *
+ * @param phone - Numéro de téléphone à valider
+ * @returns Résultat de la validation
+ */
+export const validatePhone = (phone: string): ValidationResult => {
+  if (!phone || phone.trim().length === 0) {
+    return { isValid: true }; // Optionnel
+  }
+
+  // Sanitiser le numéro de téléphone
+  const sanitizedPhone = sanitizePhone(phone);
+
+  // Vérifier le format français ou guadeloupéen
+  const isFrenchFormat = REGEX_PATTERNS.PHONE_FR.test(sanitizedPhone);
+  const isGuadeloupeFormat = REGEX_PATTERNS.PHONE_GP.test(sanitizedPhone);
+
+  if (!isFrenchFormat && !isGuadeloupeFormat) {
+    return {
+      isValid: false,
+      message: "Numéro de téléphone invalide (format français attendu)",
+    };
+  }
+
+  return { isValid: true };
+};
+
+/**
+ * Valide un texte avec options personnalisées
+ *
+ * @param text - Texte à valider
+ * @param options - Options de validation
+ * @returns Résultat de la validation
+ */
+export const validateText = (
+  text: string,
+  options: TextValidationOptions = {}
+): ValidationResult => {
+  // Vérifier si requis
+  if (options.required) {
+    const requiredResult = validateRequired(text);
+    if (!requiredResult.isValid) {
+      return requiredResult;
+    }
+  }
+
+  // Vérifier la longueur minimale
+  if (options.minLength !== undefined) {
+    const minLengthResult = validateMinLength(text, options.minLength);
+    if (!minLengthResult.isValid) {
+      return minLengthResult;
+    }
+  }
+
+  // Vérifier la longueur maximale
+  if (options.maxLength !== undefined) {
+    const maxLengthResult = validateMaxLength(text, options.maxLength);
+    if (!maxLengthResult.isValid) {
+      return maxLengthResult;
+    }
+  }
+
+  // Vérifier le pattern
+  if (options.pattern) {
+    const patternResult = validatePattern(
+      text,
+      options.pattern,
+      options.customMessage
+    );
+    if (!patternResult.isValid) {
+      return patternResult;
+    }
+  }
+
+  return { isValid: true };
+};
+
+/**
+ * Valide la longueur minimale d'un texte
+ *
+ * @param value - Texte à valider
+ * @param minLength - Longueur minimale
+ * @returns Résultat de la validation
+ */
+export const validateMinLength = (
+  value: string,
+  minLength: number
+): ValidationResult => {
+  if (value.length < minLength) {
+    return {
+      isValid: false,
+      message: `Le texte doit contenir au moins ${minLength} caractères`,
+    };
+  }
+  return { isValid: true };
+};
+
+/**
+ * Valide la longueur maximale d'un texte
+ *
+ * @param value - Texte à valider
+ * @param maxLength - Longueur maximale
+ * @returns Résultat de la validation
+ */
+export const validateMaxLength = (
+  value: string,
+  maxLength: number
+): ValidationResult => {
+  if (value.length > maxLength) {
+    return {
+      isValid: false,
+      message: `Le texte ne peut pas dépasser ${maxLength} caractères`,
+    };
+  }
+  return { isValid: true };
+};
+
 // ====================================================
 // VALIDATEURS SPÉCIALISÉS
 // ====================================================

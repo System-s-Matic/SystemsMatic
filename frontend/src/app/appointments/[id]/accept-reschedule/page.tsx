@@ -68,7 +68,7 @@ export default function AcceptReschedulePage() {
             href="/"
             className="inline-block bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors"
           >
-            Retour à l'accueil
+            Retour à l&apos;accueil
           </a>
         </div>
       </div>
@@ -91,7 +91,7 @@ export default function AcceptReschedulePage() {
             href="/"
             className="inline-block bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors"
           >
-            Retour à l'accueil
+            Retour à l&apos;accueil
           </a>
         </div>
       </div>

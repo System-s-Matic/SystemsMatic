@@ -153,7 +153,7 @@ export const ANIMATION_DURATIONS = {
 export const REGEX_PATTERNS = {
   EMAIL: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
   PHONE_FR: /^(?:(?:\+|00)33|0)\s*[1-9](?:[\s.-]*\d{2}){4}$/,
-  PHONE_GP: /^0\d{3}\s?\d{2}\s?\d{2}\s?\d{2}$/,
+  PHONE_GP: /^(?:(?:\+|00)590|0)\s*[1-9](?:[\s.-]*\d{2}){4}$/,
 } as const;
 
 /**

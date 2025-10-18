@@ -11,14 +11,15 @@ export default function NotFound() {
           <h1 className="not-found__title">404</h1>
           <h2 className="not-found__subtitle">Page introuvable</h2>
           <p className="not-found__description">
-            Désolé, la page que vous recherchez n'existe pas ou a été déplacée.
+            Désolé, la page que vous recherchez n&apos;existe pas ou a été
+            déplacée.
           </p>
           <div className="not-found__actions">
             <Link
               href="/"
               className="not-found__button not-found__button--primary"
             >
-              Retour à l'accueil
+              Retour à l&apos;accueil
             </Link>
             <button
               onClick={() => window.history.back()}

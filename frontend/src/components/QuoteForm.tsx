@@ -138,8 +138,8 @@ export default function QuoteForm() {
           <div className="quote-form-header">
             <h2 className="quote-form-title">Demander un devis</h2>
             <p className="quote-form-subtitle">
-              Décrivez votre projet d'automatisme et nous vous établirons un
-              devis personnalisé gratuit
+              Décrivez votre projet d&apos;automatisme et nous vous établirons
+              un devis personnalisé gratuit
             </p>
           </div>
 
@@ -264,8 +264,8 @@ export default function QuoteForm() {
                     !formData.phone?.trim() ? "disabled" : ""
                   }`}
                 >
-                  J'accepte d'être recontacté(e) par téléphone pour discuter de
-                  ma demande
+                  J&apos;accepte d&apos;être recontacté(e) par téléphone pour
+                  discuter de ma demande
                 </label>
               </div>
 
@@ -281,7 +281,7 @@ export default function QuoteForm() {
                   disabled={isSubmitting}
                 />
                 <label htmlFor="acceptTerms" className="form-checkbox-label">
-                  J'accepte les conditions générales d'utilisation *
+                  J&apos;accepte les conditions générales d&apos;utilisation *
                 </label>
               </div>
               {errors.acceptTerms && (
@@ -337,9 +337,9 @@ export default function QuoteForm() {
           <h2 className="quote-success-title">Demande de devis envoyée !</h2>
           <p className="quote-success-message">
             Nous avons bien reçu votre demande de devis pour votre projet
-            d'automatisme. Vous recevrez bientôt un email de confirmation et
-            nous vous recontacterons rapidement pour établir un devis détaillé
-            et personnalisé.
+            d&apos;automatisme. Vous recevrez bientôt un email de confirmation
+            et nous vous recontacterons rapidement pour établir un devis
+            détaillé et personnalisé.
           </p>
           <button
             onClick={() => setIsFormSubmitted(false)}
