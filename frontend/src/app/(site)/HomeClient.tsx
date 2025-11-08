@@ -1,11 +1,45 @@
 "use client";
 
+import { useState } from "react";
 import AppointmentSection from "../../components/AppointmentSection";
 import ChatBox from "../../components/ChatBox";
 import QuoteForm from "../../components/QuoteForm";
 import InteractiveMap from "../components/InteractiveMap";
+import Lightbox from "yet-another-react-lightbox";
+import "yet-another-react-lightbox/styles.css";
 
 export default function HomeClient() {
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  const galleryImages = [
+    {
+      src: "/images/20160816_134428-143e9c18-1920w.webp",
+      alt: "Installation de portail automatique",
+      title: "Portail automatique",
+    },
+    {
+      src: "/images/fermeture_installation_portail_shutterstock_347552387-1920w.webp",
+      alt: "Installation de portail",
+      title: "Installation portail",
+    },
+    {
+      src: "/images/fermeture_porte_garage_shutterstock_150427739-1920w.webp",
+      alt: "Porte de garage motorisée",
+      title: "Porte de garage",
+    },
+    {
+      src: "/images/portail+(3)-1920w.webp",
+      alt: "Portail moderne",
+      title: "Portail moderne",
+    },
+    {
+      src: "/images/Portes_papillon_station_namur_metro_de_montreal-1920w.webp",
+      alt: "Portes automatiques",
+      title: "Portes automatiques",
+    },
+  ];
+
   return (
     <div className="home-container">
       {/* Hero Section */}
@@ -214,16 +248,26 @@ export default function HomeClient() {
         <div className="container">
           <div className="section-header">
             <h2 className="section-title">Nos réalisations</h2>
+            <p className="section-subtitle">
+              Découvrez quelques-unes de nos installations
+            </p>
           </div>
           <div className="gallery-grid">
-            <div className="gallery-item">Image</div>
-            <div className="gallery-item">Image</div>
-            <div className="gallery-item">Image</div>
-            <div className="gallery-item">Image</div>
-            <div className="gallery-item">Image</div>
-          </div>
-          <div className="section-actions">
-            <button className="btn btn-secondary">Afficher davantage</button>
+            {galleryImages.map((image, index) => (
+              <div
+                key={index}
+                className={`gallery-item ${index === 0 ? "gallery-item-large" : ""}`}
+                onClick={() => {
+                  setCurrentImageIndex(index);
+                  setLightboxOpen(true);
+                }}
+              >
+                <img src={image.src} alt={image.alt} loading="lazy" />
+                <div className="gallery-overlay">
+                  <h3>{image.title}</h3>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -352,6 +396,14 @@ export default function HomeClient() {
       </section>
 
       <ChatBox />
+
+      {/* Lightbox */}
+      <Lightbox
+        open={lightboxOpen}
+        close={() => setLightboxOpen(false)}
+        slides={galleryImages}
+        index={currentImageIndex}
+      />
     </div>
   );
 }

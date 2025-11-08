@@ -33,6 +33,7 @@
     "react-map-gl": "^8.1.0",
     "react-query": "^3.39.3",
     "react-toastify": "^11.0.5",
+    "yet-another-react-lightbox": "^3.25.0",
     "zustand": "^4.4.7"
   },
   "devDependencies": {
