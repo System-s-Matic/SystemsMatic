@@ -3,6 +3,7 @@
 import AppointmentSection from "../../components/AppointmentSection";
 import ChatBox from "../../components/ChatBox";
 import QuoteForm from "../../components/QuoteForm";
+import InteractiveMap from "../components/InteractiveMap";
 
 export default function HomeClient() {
   return (
@@ -233,10 +234,95 @@ export default function HomeClient() {
             <h2 className="section-title">Zone d&apos;intervention</h2>
             <p className="section-subtitle">Guadeloupe et alentours</p>
           </div>
+
+          {/* Carte interactive Mapbox */}
+          <div className="map-container">
+            <InteractiveMap
+              longitude={-61.623889}
+              latitude={16.204722}
+              zoom={15}
+              height="350px"
+            />
+          </div>
+
+          {/* Informations de contact */}
+          <div className="map-info">
+            <div className="map-info-grid">
+              <div className="map-info-item">
+                <svg
+                  className="map-info-icon"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                </svg>
+                <div className="map-info-content">
+                  <h4>Adresse</h4>
+                  <p>
+                    188 chemin Malgré Tout
+                    <br />
+                    97170 PETIT BOURG
+                    <br />
+                    Guadeloupe
+                  </p>
+                </div>
+              </div>
+
+              <div className="map-info-item">
+                <svg
+                  className="map-info-icon"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
+                  />
+                </svg>
+                <div className="map-info-content">
+                  <h4>Zone d&apos;intervention</h4>
+                  <p>Guadeloupe</p>
+                </div>
+              </div>
+
+              <div className="map-info-item">
+                <svg
+                  className="map-info-icon"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                  />
+                </svg>
+                <div className="map-info-content">
+                  <h4>Service professionnel</h4>
+                  <p>Intervention rapide sur toute l&apos;île</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className="contact-cta">
-            <a className="cta-pill primary" href="#quote-form">
-              Demander un devis
-            </a>
             <button
               className="cta-pill primary"
               onClick={() =>
@@ -245,7 +331,7 @@ export default function HomeClient() {
                   ?.scrollIntoView({ behavior: "smooth" })
               }
             >
-              Recevoir mon devis gratuit
+              Demander un devis
             </button>
           </div>
         </div>
