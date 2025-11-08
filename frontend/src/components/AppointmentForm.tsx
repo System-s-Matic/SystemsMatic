@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import NativeDateTimePicker from "./NativeDateTimePicker";
 import { CreateAppointmentDto, AppointmentReason } from "../types/appointment";
-import { getUserTimezone, getUserTimezoneDisplayName } from "../lib/date-utils";
+import { getUserTimezone } from "../lib/date-utils";
 import { sanitizers } from "../lib/validation";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -25,7 +25,6 @@ export default function AppointmentForm({ onSubmit }: AppointmentFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showOtherReason, setShowOtherReason] = useState(false);
   const [selectedDateTime, setSelectedDateTime] = useState<Date | null>(null);
-  const [timezoneDisplay, setTimezoneDisplay] = useState("");
 
   const {
     register,
@@ -51,10 +50,6 @@ export default function AppointmentForm({ onSubmit }: AppointmentFormProps) {
       consent: false,
     },
   });
-
-  useEffect(() => {
-    setTimezoneDisplay(getUserTimezoneDisplayName());
-  }, []);
 
   const handleDateChange = useCallback((date: Date | null) => {
     setSelectedDateTime(date);
@@ -234,10 +229,6 @@ export default function AppointmentForm({ onSubmit }: AppointmentFormProps) {
             délai maximum d&apos;1 mois). Créneaux disponibles : 8h-12h et
             14h-17h (toutes les 30 minutes). Nous vous confirmerons la
             disponibilité et vous proposerons un horaire définitif.
-          </p>
-          <p className="form-help timezone-info">
-            <strong>Votre timezone détectée :</strong>{" "}
-            {timezoneDisplay || "Chargement..."}
           </p>
         </div>
 

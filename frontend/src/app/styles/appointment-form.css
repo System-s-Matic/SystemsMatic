@@ -26,17 +26,17 @@
 }
 
 .appointment-form-title {
-  font-size: 1.375rem;
+  font-size: 1.25rem;
   font-weight: 600;
   color: var(--color-text-primary);
-  margin-bottom: var(--spacing-sm);
+  margin-bottom: var(--spacing-xs);
 }
 
 .appointment-form-subtitle {
   color: var(--color-text-secondary);
   margin-bottom: 0;
-  font-size: 0.95rem;
-  line-height: 1.5;
+  font-size: 0.9rem;
+  line-height: 1.4;
 }
 
 .appointment-form-header {
@@ -45,7 +45,7 @@
     var(--color-bg-primary) 0%,
     var(--color-bg-secondary) 100%
   );
-  padding: var(--spacing-xl);
+  padding: var(--spacing-lg) var(--spacing-xl);
   text-align: center;
   border-bottom: 1px solid #f1f5f9;
   max-width: 600px;
@@ -53,10 +53,10 @@
 }
 
 .appointment-form {
-  padding: var(--spacing-xl);
+  padding: var(--spacing-lg) var(--spacing-xl);
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-lg);
+  gap: var(--spacing-md);
 }
 
 .form-checkboxes {
@@ -79,25 +79,25 @@
 
 .appointment-success-container {
   text-align: center;
-  padding: var(--spacing-3xl) var(--spacing-xl);
+  padding: var(--spacing-2xl) var(--spacing-xl);
   background: var(--color-bg-primary);
 }
 
 .appointment-success-icon {
-  width: 80px;
-  height: 80px;
+  width: 64px;
+  height: 64px;
   background: var(--color-success-light);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto var(--spacing-lg);
+  margin: 0 auto var(--spacing-md);
   border: 1px solid #d1fae5;
 }
 
 .appointment-success-icon svg {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   color: var(--color-success);
   animation: checkmark 0.5s ease-in-out;
 }
@@ -114,19 +114,20 @@
 }
 
 .appointment-success-title {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 600;
-  margin-bottom: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
   color: var(--color-success);
 }
 
 .appointment-success-message {
   color: var(--color-text-secondary);
-  margin-bottom: var(--spacing-xl);
-  line-height: 1.6;
+  margin-bottom: var(--spacing-lg);
+  line-height: 1.5;
   max-width: 400px;
   margin-left: auto;
   margin-right: auto;
+  font-size: 0.95rem;
 }
 
 .appointment-success-button {
@@ -224,7 +225,7 @@ html {
 
   .appointment-form-header,
   .appointment-form {
-    padding: var(--spacing-lg);
+    padding: var(--spacing-md) var(--spacing-lg);
   }
 
   .form-checkboxes {
@@ -261,7 +262,7 @@ html {
 
   .appointment-form-header,
   .appointment-form {
-    padding: var(--spacing-md);
+    padding: var(--spacing-sm) var(--spacing-md);
   }
 
   .cta-section {

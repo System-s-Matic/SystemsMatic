@@ -15,7 +15,6 @@ dayjs.extend(timezone);
 // Mock des dépendances
 jest.mock("../../lib/date-utils", () => ({
   getUserTimezone: () => "Europe/Paris",
-  getUserTimezoneDisplayName: () => "Europe/Paris (UTC+1)",
 }));
 
 jest.mock("../../lib/validation", () => ({
@@ -242,13 +241,6 @@ describe("AppointmentForm", () => {
       expect(screen.getByRole("textbox", { name: /^Nom$/i })).toHaveValue("");
       expect(screen.getByLabelText(/Email/i)).toHaveValue("");
     });
-  });
-
-  it("devrait afficher la timezone détectée", () => {
-    render(<AppointmentForm onSubmit={mockOnSubmit} />);
-
-    expect(screen.getByText(/Votre timezone détectée/i)).toBeInTheDocument();
-    expect(screen.getByText(/Europe\/Paris \(UTC\+1\)/i)).toBeInTheDocument();
   });
 
   it("devrait afficher les informations d'aide", () => {
