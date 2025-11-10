@@ -63,6 +63,11 @@ export default function Navbar() {
                 Prendre rendez-vous
               </Link>
             </li>
+            <li className="navbar__nav-item">
+              <Link href="#quote-form" className="navbar__nav-link">
+                Demander un devis
+              </Link>
+            </li>
           </ul>
         </div>
 
