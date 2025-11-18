@@ -15,9 +15,7 @@ jobs:
   backend:
     name: Backend — Lint, Tests & Coverage
     runs-on: ubuntu-latest
-    env:
-      PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING: "1"
-      PRISMA_ENGINES_MIRROR: "https://registry.npmjs.org/@prisma/engines"
+
     services:
       postgres:
         image: postgres:15-alpine
