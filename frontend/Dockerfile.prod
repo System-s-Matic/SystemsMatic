@@ -1,61 +1,49 @@
-# Dockerfile pour le frontend Next.js
-FROM node:20-alpine AS base
-
+# ----------- BASE DE DÉPENDANCES -----------
+FROM node:20-alpine AS deps
 WORKDIR /app
 
-# Copier les fichiers de dépendances
+# Copier uniquement les fichiers nécessaires à l'installation des deps
 COPY package*.json ./
 
-# Installer les dépendances
-RUN npm ci --only=production && npm cache clean --force
+# Installer toutes les dépendances (dev + prod) pour optimiser le cache
+RUN npm ci && npm cache clean --force
 
-# Stage de build
+# ----------- BUILD -----------
 FROM node:20-alpine AS build
-
 WORKDIR /app
 
-# Copier les fichiers de dépendances
-COPY package*.json ./
+# Réutiliser les node_modules installés pour éviter un second npm ci
+COPY --from=deps /app/node_modules ./node_modules
 
-# Installer toutes les dépendances (dev + prod)
-RUN npm ci
-
-# Copier le code source
+# Copier le reste du code source
 COPY . .
 
 # Build de l'application Next.js
 RUN npm run build
 
-# Stage de production
+# ----------- PRODUCTION -----------
 FROM node:20-alpine AS production
-
 WORKDIR /app
 
 # Créer un utilisateur non-root
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nextjs -u 1001
+RUN addgroup -g 1001 -S nodejs \
+ && adduser -S nextjs -u 1001
 
-# Copier les fichiers de dépendances
-COPY package*.json ./
-
-# Installer uniquement les dépendances de production
-RUN npm ci --only=production && npm cache clean --force
-
-# Copier les fichiers buildés depuis le stage build
+# Copier uniquement les artefacts nécessaires
 COPY --from=build --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=build --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=build --chown=nextjs:nodejs /app/public ./public
 
-# Changer vers l'utilisateur non-root
+# Définir les variables d'environnement
+ENV NODE_ENV=production \
+    PORT=3000 \
+    HOSTNAME=0.0.0.0
+
+# Utiliser l'utilisateur non-root
 USER nextjs
 
-# Exposer le port
+# Exposer le port de l'application
 EXPOSE 3000
-
-# Variables d'environnement
-ENV NODE_ENV=production
-ENV PORT=3000
-ENV HOSTNAME="0.0.0.0"
 
 # Commande de démarrage
 CMD ["node", "server.js"]

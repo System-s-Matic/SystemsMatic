@@ -15,7 +15,8 @@ jobs:
   backend:
     name: Backend — Lint, Tests & Coverage
     runs-on: ubuntu-latest
-
+    env:
+      PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING: "1"
     services:
       postgres:
         image: postgres:15-alpine
@@ -163,24 +164,29 @@ jobs:
     if: always()
 
     steps:
-      - name: Notify Discord (Dynamic Status)
+      - name: Set summary message (Dynamic Status)
+        id: summary
+        run: |
+          if [[ "${{ needs.backend.result }}" == "success" && \
+                "${{ needs.frontend.result }}" == "success" && \
+                ( "${{ needs.e2e-tests.result }}" == "success" || "${{ needs.e2e-tests.result }}" == "skipped" ) ]]; then
+            echo "message=**Intégration continue réussie — System's Matic**" >> "$GITHUB_OUTPUT"
+          else
+            echo "message=**Échec de l'intégration continue — System's Matic**" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Notify Discord
         uses: Ilshidur/action-discord@master
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         with:
-          args: >
-            ${{ 
-              (needs.backend.result == 'success' && 
-               needs.frontend.result == 'success' && 
-               needs.e2e-tests.result == 'success') 
-              && '**Intégration continue réussie — System''s Matic**' 
-              || '**Échec de l''intégration continue — System''s Matic**'
-            }}
+          args: |
+            ${{ steps.summary.outputs.message }}
 
             Résultats des modules :
             - Backend : ${{ needs.backend.result }}
             - Frontend : ${{ needs.frontend.result }}
             - E2E : ${{ needs.e2e-tests.result }}
 
-            Consulter les logs détaillés :
+            Logs détaillés :
             ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
