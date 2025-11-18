@@ -175,8 +175,8 @@ jobs:
                 needs.frontend.result == 'success' &&
                 (needs.e2e-tests.result == 'success' || needs.e2e-tests.result == 'skipped')
               )
-              && '**Intégration continue réussie — System's Matic**'
-              || '**Échec de l'intégration continue — System's Matic**'
+              && "**Intégration continue réussie — System's Matic**"
+              || "**Échec de l'intégration continue — System's Matic**"
             }}
 
             Résultats des modules :
