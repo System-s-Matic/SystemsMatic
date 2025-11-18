@@ -1,50 +1,31 @@
-name: Continuous Deployment — System’s Matic
+name: Continuous Deployment — System's Matic
 
 on:
   workflow_run:
     workflows: ["Continuous Integration — System's Matic"]
-    types:
-      - completed
-  push:
-    branches: [main]
-    paths-ignore:
-      - "**.md"
-      - "documentation/**"
+    types: [completed]
 
 jobs:
   build-and-push-backend:
     name: Build & Push Backend Docker Image
     runs-on: ubuntu-latest
-    if: >
-      github.event_name == 'push' &&
-      (
-        contains(github.event.head_commit.message, 'feat') ||
-        contains(github.event.head_commit.message, 'fix') ||
-        contains(github.event.head_commit.message, 'refactor') ||
-        contains(github.event.head_commit.message, 'style') ||
-        contains(github.event.head_commit.message, 'perf') ||
-        contains(github.event.head_commit.message, 'build')
-      ) &&
-      (github.event.workflow_run.conclusion == 'success' || github.event_name == 'push')
+    if: github.event.workflow_run.conclusion == 'success'
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-buildx-action@v3
 
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
+      - uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build & Push Backend Image
+      - name: Build & Push (Dockerfile.prod)
         uses: docker/build-push-action@v5
         with:
           context: ./backend
-          file: ./backend/Dockerfile
+          file: ./backend/Dockerfile.prod
           push: true
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/systemsmatic-backend:latest
@@ -52,49 +33,39 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  deploy-to-render:
-    name: Deploy Backend to Render
+  deploy-backend-render:
+    name: Trigger Render Deploy
+    needs: build-and-push-backend
     runs-on: ubuntu-latest
-    needs: [build-and-push-backend]
     if: success()
-    steps:
-      - name: Trigger Render Deploy Hook
-        run: |
-          echo "Déclenchement du déploiement Render..."
-          curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
-          echo "Déploiement Render déclenché avec succès."
 
-  deploy-to-netlify:
+    steps:
+      - name: Call Render Deploy Hook
+        run: curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
+
+  deploy-frontend-netlify:
     name: Trigger Netlify Build
     runs-on: ubuntu-latest
+    needs: build-and-push-backend
     if: success()
-    steps:
-      - name: Trigger Netlify Build Hook
-        run: |
-          echo "Déclenchement du déploiement Netlify..."
-          curl -X POST -d '{}' https://api.netlify.com/build_hooks/${{ secrets.NETLIFY_BUILD_HOOK }}
-          echo "Déploiement Netlify déclenché avec succès."
 
-  notify-deploy:
-    name: Notification Discord — Deployment
-    runs-on: ubuntu-latest
-    needs: [deploy-to-render, deploy-to-netlify]
-    if: always()
     steps:
-      - name: Send Discord Notification
-        uses: Ilshidur/action-discord@master
+      - name: Trigger Netlify Hook
+        run: |
+          curl -X POST -d '{}' https://api.netlify.com/build_hooks/${{ secrets.NETLIFY_BUILD_HOOK }}
+
+  notify:
+    name: Discord Notification
+    runs-on: ubuntu-latest
+    needs: [deploy-backend-render, deploy-frontend-netlify]
+    if: always()
+
+    steps:
+      - uses: Ilshidur/action-discord@master
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         with:
           args: |
-            ${{ needs.deploy-to-render.result == 'success' && '✓' || '✗' }} **Déploiement Render**
-            ${{ needs.deploy-to-netlify.result == 'success' && '✓' || '✗' }} **Déploiement Netlify**
-            ---
-            **Images Docker :**
-            • `${{ secrets.DOCKERHUB_USERNAME }}/systemsmatic-backend:latest`
-            • `${{ secrets.DOCKERHUB_USERNAME }}/systemsmatic-backend:${{ github.sha }}`
-            ---
-            **Logs GitHub Actions :**
-            [Voir le workflow](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
-            ---
-            *Déploiement effectué à :* `${{ github.event.head_commit.timestamp }}`
+            Déploiement terminé :
+            - Backend Render : ${{ needs.deploy-backend-render.result }}
+            - Frontend Netlify : ${{ needs.deploy-frontend-netlify.result }}
