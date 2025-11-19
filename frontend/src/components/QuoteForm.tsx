@@ -316,7 +316,7 @@ export default function QuoteForm() {
                       d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
                     />
                   </svg>
-                  Envoyer ma demande de devis
+                  Demander un devis
                 </>
               )}
             </button>
