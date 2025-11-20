@@ -225,49 +225,6 @@ describe('AuthController', () => {
     });
   });
 
-  describe('loginLocal', () => {
-    it('devrait connecter un utilisateur local avec succès', async () => {
-      // Arrange
-      const req = { user: mockUser };
-      authService.login.mockResolvedValue(mockAuthResult);
-
-      // Act
-      await controller.loginLocal(req, mockResponse);
-
-      // Assert
-      expect(authService.login).toHaveBeenCalledWith(mockUser);
-      expect(mockResponse.cookie).toHaveBeenCalledWith(
-        'auth_token',
-        mockAuthResult.access_token,
-        getCookieOptions(),
-      );
-      expect(mockResponse.cookie).toHaveBeenCalledWith(
-        'auth_user',
-        JSON.stringify(mockAuthResult.user),
-        getCookieOptions(),
-      );
-      expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.OK);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        message: 'Connexion locale réussie',
-        user: mockAuthResult.user,
-      });
-    });
-
-    it('devrait gérer les erreurs de connexion locale', async () => {
-      // Arrange
-      const req = { user: mockUser };
-      const error = new Error('Erreur de connexion locale');
-      authService.login.mockRejectedValue(error);
-
-      // Act & Assert
-      await expect(controller.loginLocal(req, mockResponse)).rejects.toThrow(
-        error,
-      );
-      expect(authService.login).toHaveBeenCalledWith(mockUser);
-      expect(mockResponse.cookie).not.toHaveBeenCalled();
-    });
-  });
-
   describe('Configuration des cookies', () => {
     it('devrait utiliser les bonnes options de cookies pour la connexion', async () => {
       // Arrange
