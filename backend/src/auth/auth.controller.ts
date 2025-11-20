@@ -19,7 +19,6 @@ import {
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
-import { LocalAuthGuard } from './guards/local-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import {
   getCookieOptions,
@@ -97,25 +96,5 @@ export class AuthController {
   @ApiBearerAuth()
   async getProfile(@Request() req) {
     return this.authService.getProfile(req.user.sub);
-  }
-
-  @UseGuards(LocalAuthGuard)
-  @Post('login/local')
-  @ApiOperation({ summary: 'Connexion locale (pour tests)' })
-  @ApiResponse({ status: 200, description: 'Connexion locale réussie' })
-  @ApiResponse({ status: 401, description: 'Identifiants invalides' })
-  async loginLocal(@Request() req, @Res() res: Response) {
-    const result = await this.authService.login(req.user);
-
-    // Définir le cookie HTTP-only pour le token
-    res.cookie('auth_token', result.access_token, getCookieOptions());
-
-    // Définir le cookie HTTP-only pour les données utilisateur
-    res.cookie('auth_user', JSON.stringify(result.user), getCookieOptions());
-
-    return res.status(HttpStatus.OK).json({
-      message: 'Connexion locale réussie',
-      user: result.user,
-    });
   }
 }
