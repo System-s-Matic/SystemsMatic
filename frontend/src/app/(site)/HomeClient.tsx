@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import AppointmentSection from "../../components/AppointmentSection";
 import ChatBox from "../../components/ChatBox";
 import QuoteForm from "../../components/QuoteForm";
@@ -256,13 +257,23 @@ export default function HomeClient() {
             {galleryImages.map((image, index) => (
               <div
                 key={index}
-                className={`gallery-item ${index === 0 ? "gallery-item-large" : ""}`}
+                className={`gallery-item ${
+                  index === 0 ? "gallery-item-large" : ""
+                }`}
                 onClick={() => {
                   setCurrentImageIndex(index);
                   setLightboxOpen(true);
                 }}
               >
-                <img src={image.src} alt={image.alt} loading="lazy" />
+                <Image
+                  src={image.src}
+                  alt={image.alt}
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                  className="gallery-image"
+                  priority={index === 0}
+                  loading={index === 0 ? undefined : "lazy"}
+                />
                 <div className="gallery-overlay">
                   <h3>{image.title}</h3>
                 </div>

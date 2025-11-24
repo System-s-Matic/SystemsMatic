@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -15,7 +16,13 @@ export default function Navbar() {
       <div className="navbar__container">
         <div className="navbar__brand">
           <Link href="/" className="navbar__logo">
-            <img src="/images/logo.jpg" alt="System's Matic" />
+            <Image
+              src="/images/logo.jpg"
+              alt="System's Matic"
+              width={150}
+              height={40}
+              priority
+            />
           </Link>
         </div>
 

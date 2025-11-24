@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export default function Footer() {
   return (
@@ -8,7 +9,13 @@ export default function Footer() {
           {/* Section principale */}
           <div className="footer__section">
             <h3 className="footer__title">
-              <img src="/images/logo.jpg" alt="System's Matic" />
+              <Image
+                src="/images/logo.jpg"
+                alt="System's Matic"
+                width={160}
+                height={40}
+                className="footer__logo"
+              />
             </h3>
             <p className="footer__description">
               Spécialiste en automatismes : portes, portails, volets.
