@@ -1,14 +1,13 @@
 services:
-  backend:
+  systemsmatic-backend:
     container_name: systemsmatic-backend
     build:
       context: ./backend
       dockerfile: Dockerfile.dev
-    command: npm run dev
-    ports:
-      - "3001:3001"
     env_file:
       - ./backend/.env.docker
+    ports:
+      - "3001:3001"
     volumes:
       - ./backend:/app
       - /app/node_modules
@@ -18,7 +17,7 @@ services:
     networks:
       - systemsmatic-net
 
-  frontend:
+  systemsmatic-frontend:
     container_name: systemsmatic-frontend
     build:
       context: ./frontend
@@ -32,18 +31,18 @@ services:
       - ./frontend:/app
       - /app/node_modules
     depends_on:
-      - backend
+      - systemsmatic-backend
     networks:
       - systemsmatic-net
 
   postgres:
-    image: postgres:15
     container_name: systemsmatic-postgres
+    image: postgres:15
     restart: always
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_DB: ${POSTGRES_USER}
+      POSTGRES_USER: ${POSTGRES_PASSWORD}
+      POSTGRES_PASSWORD: ${POSTGRES_DB}
     volumes:
       - pgdata:/var/lib/postgresql/data
     ports: []
@@ -51,15 +50,42 @@ services:
       - systemsmatic-net
 
   redis:
-    image: redis:7
     container_name: systemsmatic-redis
+    image: redis:7
     restart: always
     ports: []
     networks:
       - systemsmatic-net
 
+  prometheus:
+    container_name: systemsmatic-prometheus
+    image: prom/prometheus
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    depends_on:
+      - systemsmatic-backend
+    networks:
+      - systemsmatic-net
+
+  grafana:
+    container_name: systemsmatic-grafana
+    image: grafana/grafana
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards
+    ports:
+      - "3002:3000"
+    depends_on:
+      - prometheus
+    networks:
+      - systemsmatic-net
+
 volumes:
   pgdata:
+  grafana-data:
 
 networks:
   systemsmatic-net:
