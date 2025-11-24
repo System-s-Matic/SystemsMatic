@@ -3,6 +3,7 @@ name: Continuous Deployment — System's Matic
 on:
   workflow_run:
     workflows: ["Continuous Integration — System's Matic"]
+    branches: [main]
     types: [completed]
 
 jobs:

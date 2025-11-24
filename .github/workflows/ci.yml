@@ -7,9 +7,15 @@ permissions:
 on:
   workflow_dispatch:
   push:
-    branches: [main, develop]
+    branches:
+      - develop
+      - feature/**
+      - fix/**
+      - hotfix/**
   pull_request:
-    branches: [main, develop]
+    branches:
+      - develop
+      - main
 
 env:
   SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
