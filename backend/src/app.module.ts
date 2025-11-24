@@ -11,6 +11,7 @@ import { BackofficeModule } from './backoffice/backoffice.module';
 import { AuthModule } from './auth/auth.module';
 import { QuotesModule } from './quotes/quotes.module';
 import { EmailActionsModule } from './email-actions/email-actions.module';
+import { MonitoringModule } from './monitoring/monitoring.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { EmailActionsModule } from './email-actions/email-actions.module';
     AuthModule,
     QuotesModule,
     EmailActionsModule,
+    MonitoringModule,
   ],
   controllers: [AppController],
   providers: [AppService, MailService],
