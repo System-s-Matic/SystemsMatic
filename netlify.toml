@@ -21,7 +21,7 @@
 
 # Headers spécifiques pour bloquer l'indexation des pages d'administration
 [[headers]]
-  for = "/admin-secret/*"
+  for = "/admin/*"
   [headers.values]
     X-Robots-Tag = "noindex, nofollow, noarchive, nosnippet, noimageindex"
     Cache-Control = "no-cache, no-store, must-revalidate"

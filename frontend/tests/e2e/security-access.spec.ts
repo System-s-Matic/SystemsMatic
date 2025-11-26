@@ -1,13 +1,13 @@
 import { test, expect, Page } from "@playwright/test";
 
 test.describe("Sécurité - Accès non autorisé", () => {
-  test("redirige vers la page de connexion quand on accède à /admin-secret sans être connecté", async ({
+  test("redirige vers la page de connexion quand on accède à /admin sans être connecté", async ({
     page,
   }: {
     page: Page;
   }) => {
     // Aller directement à la page admin sans être connecté
-    await page.goto("/admin-secret");
+    await page.goto("/admin");
 
     // Vérifier que le formulaire de connexion est affiché (pas de redirection, juste l'affichage du login)
     await expect(page.locator(".auth-form")).toBeVisible();
@@ -20,7 +20,7 @@ test.describe("Sécurité - Accès non autorisé", () => {
     page: Page;
   }) => {
     // Aller directement à la page admin sans être connecté
-    await page.goto("/admin-secret");
+    await page.goto("/admin");
 
     // Vérifier que le formulaire de connexion est affiché
     await expect(page.locator(".auth-form")).toBeVisible();
@@ -32,7 +32,7 @@ test.describe("Sécurité - Accès non autorisé", () => {
     page: Page;
   }) => {
     // Aller directement à la page admin sans être connecté
-    await page.goto("/admin-secret");
+    await page.goto("/admin");
 
     // Vérifier que le formulaire de connexion est affiché
     await expect(page.locator(".auth-form")).toBeVisible();
@@ -44,7 +44,7 @@ test.describe("Sécurité - Accès non autorisé", () => {
     page: Page;
   }) => {
     // Naviguer vers la page admin
-    await page.goto("/admin-secret");
+    await page.goto("/admin");
 
     // Vérifier que le formulaire de connexion est affiché
     await expect(page.locator(".auth-form")).toBeVisible();
@@ -96,7 +96,7 @@ test.describe("Sécurité - Accès non autorisé", () => {
     page: Page;
   }) => {
     // Tenter d'accéder à la route admin
-    await page.goto("/admin-secret");
+    await page.goto("/admin");
 
     // Vérifier que le formulaire de connexion est affiché
     await expect(page.locator(".auth-form")).toBeVisible();
@@ -108,7 +108,7 @@ test.describe("Sécurité - Accès non autorisé", () => {
     page: Page;
   }) => {
     // Aller à une route protégée
-    await page.goto("/admin-secret");
+    await page.goto("/admin");
 
     // Vérifier que le formulaire de connexion est affiché
     await expect(page.locator(".auth-form")).toBeVisible();
