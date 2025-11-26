@@ -103,11 +103,25 @@ describe('AppointmentValidationService', () => {
       expect(result).toBe(false);
     });
 
-    it("devrait retourner false si le rendez-vous n'est pas confirmé", () => {
+    it('devrait retourner true pour un rendez-vous PENDING (peut toujours être annulé)', () => {
+      // Arrange
+      const appointment = {
+        status: AppointmentStatus.PENDING,
+        scheduledAt: null, // Les demandes en attente n'ont pas de scheduledAt
+      };
+
+      // Act
+      const result = service.canCancelAppointment(appointment);
+
+      // Assert
+      expect(result).toBe(true);
+    });
+
+    it('devrait retourner false pour un rendez-vous avec un statut invalide (CANCELLED, REJECTED, etc.)', () => {
       // Arrange
       const futureDate = new Date(Date.now() + 48 * 60 * 60 * 1000);
       const appointment = {
-        status: AppointmentStatus.PENDING,
+        status: AppointmentStatus.CANCELLED,
         scheduledAt: futureDate,
       };
 
@@ -185,6 +199,20 @@ describe('AppointmentValidationService', () => {
       const appointment = {
         status: AppointmentStatus.RESCHEDULED,
         scheduledAt: nearDate,
+        cancellationToken: 'valid-token',
+      };
+
+      // Act & Assert
+      expect(() =>
+        service.validateCancellation(appointment, 'valid-token'),
+      ).not.toThrow();
+    });
+
+    it("devrait permettre l'annulation d'une demande PENDING (sans vérifier le délai de 24h)", () => {
+      // Arrange
+      const appointment = {
+        status: AppointmentStatus.PENDING,
+        scheduledAt: null, // Les demandes en attente n'ont pas de scheduledAt
         cancellationToken: 'valid-token',
       };
 
