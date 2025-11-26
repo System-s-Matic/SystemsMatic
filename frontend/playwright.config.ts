@@ -16,6 +16,7 @@ export default defineConfig({
     trace: "on-first-retry",
     screenshot: "only-on-failure",
     video: "retain-on-failure",
+    timezoneId: "America/Guadeloupe",
   },
 
   /* Tests uniquement sur Chromium pour simplifier */

@@ -5,8 +5,25 @@ test.describe("Formulaire de rendez-vous — Page d'accueil", () => {
     // Interception de la requête POST vers l'API
     await page.route("**/*appointments*", async (route: Route) => {
       console.log("Intercepted request:", route.request().url());
+
+      const corsHeaders = {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "*",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+      };
+
+      // Certains navigateurs déclenchent d'abord une requête OPTIONS (preflight).
+      if (route.request().method() === "OPTIONS") {
+        await route.fulfill({
+          status: 204,
+          headers: corsHeaders,
+        });
+        return;
+      }
+
       await route.fulfill({
         status: 201,
+        headers: corsHeaders,
         contentType: "application/json",
         body: JSON.stringify({
           id: "fake-appointment-id",
