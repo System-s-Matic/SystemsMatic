@@ -39,7 +39,7 @@ describe("Middleware", () => {
   });
 
   describe("Redirection admin", () => {
-    it("devrait rediriger vers /admin-secret si le hostname contient 'admin'", () => {
+    it("devrait rediriger vers /admin si le hostname contient 'admin'", () => {
       (mockRequest.headers!.get as jest.Mock).mockReturnValue(
         "admin.example.com"
       );
@@ -48,7 +48,7 @@ describe("Middleware", () => {
       middleware(mockRequest as NextRequest);
 
       expect(NextResponse.redirect).toHaveBeenCalledWith(
-        new URL("/admin-secret", "http://localhost:3000/")
+        new URL("/admin", "http://localhost:3000/")
       );
     });
 
@@ -78,7 +78,7 @@ describe("Middleware", () => {
   describe("Protection des pages admin", () => {
     it("devrait ajouter des headers de sécurité pour les pages admin", () => {
       (mockRequest.headers!.get as jest.Mock).mockReturnValue("example.com");
-      mockRequest.nextUrl!.pathname = "/admin-secret/dashboard";
+      mockRequest.nextUrl!.pathname = "/admin/dashboard";
 
       middleware(mockRequest as NextRequest);
 

@@ -44,7 +44,7 @@ test.describe("Connexion admin", () => {
       }
     });
 
-    await page.goto("/admin-secret");
+    await page.goto("/admin");
   });
 
   test("se connecte avec succès avec des identifiants valides", async ({
@@ -83,7 +83,7 @@ test.describe("Connexion admin", () => {
     await page.click('.auth-form button[type="submit"]');
 
     // Vérifier que l'utilisateur reste sur la page de connexion
-    await expect(page).toHaveURL("/admin-secret");
+    await expect(page).toHaveURL("/admin");
     await expect(page.locator("h1")).toContainText("Connexion Administrateur");
   });
 
@@ -99,7 +99,7 @@ test.describe("Connexion admin", () => {
     await page.click('.auth-form button[type="submit"]');
 
     // Vérifier que l'utilisateur reste sur la page de connexion
-    await expect(page).toHaveURL("/admin-secret");
+    await expect(page).toHaveURL("/admin");
     await expect(page.locator("h1")).toContainText("Connexion Administrateur");
   });
 
@@ -119,7 +119,7 @@ test.describe("Connexion admin", () => {
     await page.click('.auth-form button[type="submit"]');
 
     // Vérifier que l'utilisateur reste sur la page de connexion
-    await expect(page).toHaveURL("/admin-secret");
+    await expect(page).toHaveURL("/admin");
     await expect(page.locator("h1")).toContainText("Connexion Administrateur");
   });
 
