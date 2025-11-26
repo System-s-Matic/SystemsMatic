@@ -36,6 +36,7 @@ module.exports = {
     '!src/appointments/dto/admin-update-status.dto.ts',
     '!src/appointments/dto/create-appointment.dto.ts',
     '!src/appointments/dto/confirm-appointment.dto.ts',
+    '!src/monitoring/http-metrics.interceptor.ts',
   ],
   coverageDirectory: '<rootDir>/coverage',
   testEnvironment: 'node',
