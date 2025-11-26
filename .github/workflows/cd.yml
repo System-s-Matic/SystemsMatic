@@ -1,4 +1,4 @@
-name: Continuous Deployment — System's Matic
+name: Continuous Deployment — System's Matic (VPS)
 
 on:
   workflow_run:
@@ -7,57 +7,28 @@ on:
     types: [completed]
 
 jobs:
-  build-and-push-backend:
-    name: Build & Push Backend Docker Image
+  deploy-to-vps:
+    name: Déploiement sur VPS via SSH
     runs-on: ubuntu-latest
     if: github.event.workflow_run.conclusion == 'success'
 
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: docker/setup-buildx-action@v3
-
-      - uses: docker/login-action@v3
+      - name: Déploiement sur VPS
+        uses: appleboy/ssh-action@master
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Build & Push (Dockerfile.prod)
-        uses: docker/build-push-action@v5
-        with:
-          context: ./backend
-          file: ./backend/Dockerfile.prod
-          push: true
-          tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/systemsmatic-backend:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-  deploy-backend-render:
-    name: Trigger Render Deploy
-    needs: build-and-push-backend
-    runs-on: ubuntu-latest
-    if: success()
-
-    steps:
-      - name: Call Render Deploy Hook
-        run: curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
-
-  deploy-frontend-netlify:
-    name: Trigger Netlify Build
-    runs-on: ubuntu-latest
-    needs: build-and-push-backend
-    if: success()
-
-    steps:
-      - name: Trigger Netlify Hook
-        run: |
-          curl -X POST -d '{}' https://api.netlify.com/build_hooks/${{ secrets.NETLIFY_BUILD_HOOK }}
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            cd /home/ubuntu/SystemsMatic
+            chmod +x deploy.sh
+            ./deploy.sh
 
   notify:
-    name: Discord Notification
+    name: Notification Discord
     runs-on: ubuntu-latest
-    needs: [deploy-backend-render, deploy-frontend-netlify]
+    needs: deploy-to-vps
     if: always()
 
     steps:
@@ -66,6 +37,4 @@ jobs:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         with:
           args: |
-            Déploiement terminé :
-            - Backend Render : ${{ needs.deploy-backend-render.result }}
-            - Frontend Netlify : ${{ needs.deploy-frontend-netlify.result }}
+            Déploiement terminé sur VPS : ${{ needs.deploy-to-vps.result }}
