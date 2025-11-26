@@ -24,10 +24,20 @@ export class AppointmentValidationService {
    * Vérifie si un rendez-vous peut être annulé (minimum 24h à l'avance)
    */
   canCancelAppointment(appointment: any): boolean {
+    // Les demandes en attente peuvent toujours être annulées
+    if (appointment.status === AppointmentStatus.PENDING) {
+      return true;
+    }
+
+    // Pour les rendez-vous confirmés ou reprogrammés, vérifier le délai de 24h
     if (
-      appointment.status !== AppointmentStatus.CONFIRMED ||
-      !appointment.scheduledAt
+      appointment.status !== AppointmentStatus.CONFIRMED &&
+      appointment.status !== AppointmentStatus.RESCHEDULED
     ) {
+      return false;
+    }
+
+    if (!appointment.scheduledAt) {
       return false;
     }
 
@@ -57,12 +67,19 @@ export class AppointmentValidationService {
       remainingHours = Math.round(remainingHours * 100) / 100;
     }
 
+    let message: string;
+    if (appointment.status === AppointmentStatus.PENDING) {
+      message = 'Vous pouvez annuler cette demande';
+    } else if (!canCancel) {
+      message = `Impossible d'annuler ce rendez-vous (moins de ${MINIMUM_CANCELLATION_HOURS}h à l'avance)`;
+    } else {
+      message = 'Vous pouvez annuler ce rendez-vous';
+    }
+
     return {
       canCancel,
       remainingHours,
-      message: canCancel
-        ? 'Vous pouvez annuler ce rendez-vous'
-        : `Impossible d'annuler ce rendez-vous (moins de ${MINIMUM_CANCELLATION_HOURS}h à l'avance)`,
+      message,
     };
   }
 
@@ -74,12 +91,21 @@ export class AppointmentValidationService {
       throw new BadRequestException('Token invalide');
     }
 
-    // Vérifier que le rendez-vous peut être annulé
+    // Les demandes en attente peuvent toujours être annulées
+    if (appointment.status === AppointmentStatus.PENDING) {
+      return;
+    }
+
+    // Vérifier que le rendez-vous peut être annulé (doit être confirmé ou reprogrammé)
     if (
-      (appointment.status !== AppointmentStatus.CONFIRMED &&
-        appointment.status !== AppointmentStatus.RESCHEDULED) ||
-      !appointment.scheduledAt
+      appointment.status !== AppointmentStatus.CONFIRMED &&
+      appointment.status !== AppointmentStatus.RESCHEDULED
     ) {
+      throw new BadRequestException('Ce rendez-vous ne peut pas être annulé');
+    }
+
+    // Pour les rendez-vous confirmés ou reprogrammés, vérifier le délai de 24h
+    if (!appointment.scheduledAt) {
       throw new BadRequestException('Ce rendez-vous ne peut pas être annulé');
     }
 
