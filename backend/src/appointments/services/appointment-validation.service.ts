@@ -3,6 +3,7 @@ import { AppointmentStatus } from '@prisma/client';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
+import { randomBytes } from 'crypto';
 
 // Configuration des plugins dayjs
 dayjs.extend(utc);
@@ -250,10 +251,7 @@ export class AppointmentValidationService {
    * Génère un token aléatoire
    */
   generateToken(): string {
-    return (
-      Math.random().toString(36).substring(2, 15) +
-      Math.random().toString(36).substring(2, 15)
-    );
+    return randomBytes(32).toString('hex'); // 64 caractères hex
   }
 
   /**
