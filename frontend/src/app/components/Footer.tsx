@@ -145,7 +145,9 @@ export default function Footer() {
                   <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
                   <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
                 </svg>
-                contact@systems-matic.com
+                <a href="mailto:contact@kenzocda.fr" className="footer__link">
+                  contact@kenzocda.fr
+                </a>
               </p>
               <p className="footer__contact-item">
                 <svg
@@ -172,8 +174,8 @@ export default function Footer() {
             <Link href="/privacy" className="footer__legal-link">
               Politique de confidentialité
             </Link>
-            <Link href="/terms" className="footer__legal-link">
-              Conditions d&apos;utilisation
+            <Link href="/legal-notice" className="footer__legal-link">
+              Mentions légales
             </Link>
           </div>
         </div>

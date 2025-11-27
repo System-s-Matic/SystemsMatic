@@ -1,0 +1,53 @@
+.legal-container {
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 0 20px 60px;
+  font-family: Arial, Helvetica, sans-serif;
+  color: #222;
+  line-height: 1.6;
+}
+
+.legal-container h1 {
+  font-size: 2rem;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.legal-container h2 {
+  margin-top: 30px;
+  font-size: 1.3rem;
+  color: #333;
+  border-left: 4px solid #6a4feb;
+  padding-left: 10px;
+}
+
+.legal-container p {
+  margin: 10px 0;
+}
+
+.legal-container a {
+  color: #6a4feb;
+  text-decoration: none;
+}
+
+.legal-container a:hover {
+  text-decoration: underline;
+}
+
+/* Liste d'infos légales (dl) */
+
+.legal-list {
+  margin: 15px 0 10px;
+}
+
+.legal-list div {
+  margin-bottom: 10px;
+}
+
+.legal-list dt {
+  font-weight: bold;
+}
+
+.legal-list dd {
+  margin: 2px 0 0 0;
+}
