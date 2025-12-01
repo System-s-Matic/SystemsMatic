@@ -16,7 +16,11 @@ const connection = process.env.REDIS_URL
 
 @Module({
   imports: [
-    PrometheusModule.register(),
+    PrometheusModule.register({
+      defaultMetrics: {
+        enabled: false,
+      },
+    }),
     BullModule.forRoot({
       connection,
       defaultJobOptions: { removeOnComplete: 1000, removeOnFail: 1000 },
