@@ -33,14 +33,26 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
       showSuccess("Connexion réussie !");
     } catch (error: unknown) {
       let errorMessage = "Erreur de connexion";
-      if (typeof error === "object" && error !== null && "response" in error) {
+
+      if (
+        typeof error === "object" &&
+        error !== null &&
+        ("response" in error || "request" in error)
+      ) {
+        // Erreur de type Axios : on ne prend le message que s'il vient du backend
         const axiosLikeError = error as {
           response?: { data?: { message?: string } };
         };
-        errorMessage = axiosLikeError.response?.data?.message || errorMessage;
+        if (axiosLikeError.response?.data?.message) {
+          errorMessage = axiosLikeError.response.data.message;
+        }
       } else if (error instanceof Error) {
-        errorMessage = error.message;
+        // Autres erreurs JS classiques
+        // Pour rester cohérent avec les tests, on garde le message générique
+        // même si error.message est renseigné (par ex. "Network error").
+        errorMessage = "Erreur de connexion";
       }
+
       setAuthError(errorMessage);
       showError(errorMessage);
     } finally {
