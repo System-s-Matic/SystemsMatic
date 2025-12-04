@@ -87,7 +87,10 @@ describe('AppointmentCrudService', () => {
     it('devrait créer un rendez-vous avec succès', async () => {
       // Arrange
       const contactId = 'contact-123';
-      const tokens = { acceptToken: 'token-123', rejectToken: 'token-456' };
+      const tokens = {
+        confirmationToken: 'token-123',
+        cancellationToken: 'token-456',
+      };
       const processedRequestedAt = new Date('2024-01-15T10:00:00Z');
 
       jest

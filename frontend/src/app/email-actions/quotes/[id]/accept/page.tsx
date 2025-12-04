@@ -59,10 +59,12 @@ export default function AcceptQuotePage() {
         setMessage("Le devis a été accepté avec succès.");
         setQuote(result.quote);
         showSuccess("Devis accepté");
-      } catch (error: any) {
+      } catch (error: unknown) {
         setStatus("error");
-        const errorMessage =
-          error.message || "Erreur lors de l'acceptation du devis";
+        let errorMessage = "Erreur lors de l'acceptation du devis";
+        if (error instanceof Error) {
+          errorMessage = error.message;
+        }
         setMessage(errorMessage);
         showError(errorMessage);
       }

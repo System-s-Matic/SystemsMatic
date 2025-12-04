@@ -25,13 +25,14 @@ export default function AcceptReschedulePage() {
       try {
         await appointmentApi.acceptReschedule(appointmentId, token);
         setSuccess(true);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error(
           "Erreur lors de l'acceptation de la reprogrammation:",
           err
         );
         setError(
-          err.message || "Erreur lors de l'acceptation de la reprogrammation"
+          (err as Error).message ||
+            "Erreur lors de l'acceptation de la reprogrammation"
         );
       } finally {
         setLoading(false);

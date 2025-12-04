@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppointmentValidationService } from '../../src/appointments/services/appointment-validation.service';
 import { BadRequestException } from '@nestjs/common';
-import { AppointmentStatus } from '@prisma/client';
+import { Appointment, AppointmentStatus } from '@prisma/client';
 
 describe('AppointmentValidationService', () => {
   let service: AppointmentValidationService;
@@ -79,7 +79,7 @@ describe('AppointmentValidationService', () => {
       const appointment = {
         status: AppointmentStatus.CONFIRMED,
         scheduledAt: futureDate,
-      };
+      } as Appointment;
 
       // Act
       const result = service.canCancelAppointment(appointment);
@@ -94,7 +94,7 @@ describe('AppointmentValidationService', () => {
       const appointment = {
         status: AppointmentStatus.CONFIRMED,
         scheduledAt: nearDate,
-      };
+      } as Appointment;
 
       // Act
       const result = service.canCancelAppointment(appointment);
@@ -108,7 +108,7 @@ describe('AppointmentValidationService', () => {
       const appointment = {
         status: AppointmentStatus.PENDING,
         scheduledAt: null, // Les demandes en attente n'ont pas de scheduledAt
-      };
+      } as Appointment;
 
       // Act
       const result = service.canCancelAppointment(appointment);
@@ -123,7 +123,7 @@ describe('AppointmentValidationService', () => {
       const appointment = {
         status: AppointmentStatus.CANCELLED,
         scheduledAt: futureDate,
-      };
+      } as Appointment;
 
       // Act
       const result = service.canCancelAppointment(appointment);
@@ -137,7 +137,7 @@ describe('AppointmentValidationService', () => {
       const appointment = {
         status: AppointmentStatus.CONFIRMED,
         scheduledAt: null,
-      };
+      } as Appointment;
 
       // Act
       const result = service.canCancelAppointment(appointment);
@@ -155,7 +155,7 @@ describe('AppointmentValidationService', () => {
         status: AppointmentStatus.CONFIRMED,
         scheduledAt: futureDate,
         cancellationToken: 'valid-token',
-      };
+      } as Appointment;
 
       // Act & Assert
       expect(() =>
@@ -170,7 +170,7 @@ describe('AppointmentValidationService', () => {
         status: AppointmentStatus.CONFIRMED,
         scheduledAt: futureDate,
         cancellationToken: 'valid-token',
-      };
+      } as Appointment;
 
       // Act & Assert
       expect(() =>
@@ -185,7 +185,7 @@ describe('AppointmentValidationService', () => {
         status: AppointmentStatus.CONFIRMED,
         scheduledAt: nearDate,
         cancellationToken: 'valid-token',
-      };
+      } as Appointment;
 
       // Act & Assert
       expect(() =>
@@ -200,7 +200,7 @@ describe('AppointmentValidationService', () => {
         status: AppointmentStatus.RESCHEDULED,
         scheduledAt: nearDate,
         cancellationToken: 'valid-token',
-      };
+      } as Appointment;
 
       // Act & Assert
       expect(() =>
@@ -214,7 +214,7 @@ describe('AppointmentValidationService', () => {
         status: AppointmentStatus.PENDING,
         scheduledAt: null, // Les demandes en attente n'ont pas de scheduledAt
         cancellationToken: 'valid-token',
-      };
+      } as Appointment;
 
       // Act & Assert
       expect(() =>
@@ -228,7 +228,7 @@ describe('AppointmentValidationService', () => {
       // Arrange
       const appointment = {
         status: AppointmentStatus.PENDING,
-      };
+      } as Appointment;
 
       // Act & Assert
       expect(() => service.validateConfirmation(appointment)).not.toThrow();
@@ -238,7 +238,7 @@ describe('AppointmentValidationService', () => {
       // Arrange
       const appointment = {
         status: AppointmentStatus.RESCHEDULED,
-      };
+      } as Appointment;
 
       // Act & Assert
       expect(() => service.validateConfirmation(appointment)).not.toThrow();
@@ -248,7 +248,7 @@ describe('AppointmentValidationService', () => {
       // Arrange
       const appointment = {
         status: AppointmentStatus.CONFIRMED,
-      };
+      } as Appointment;
 
       // Act & Assert
       expect(() => service.validateConfirmation(appointment)).toThrow(

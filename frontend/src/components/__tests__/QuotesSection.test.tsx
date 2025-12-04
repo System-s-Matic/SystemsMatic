@@ -28,7 +28,15 @@ const mockQuote: Quote = {
 const baseProps = {
   quotes: [],
   quotesLoading: false,
-  quotesStats: {},
+  quotesStats: {
+    total: 0,
+    pending: 0,
+    processing: 0,
+    sent: 0,
+    accepted: 0,
+    rejected: 0,
+    conversionRate: "0.00",
+  },
   quotesFilter: "",
   setQuotesFilter: jest.fn(),
   updateQuoteStatus: jest.fn(),

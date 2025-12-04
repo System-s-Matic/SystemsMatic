@@ -104,10 +104,17 @@ export default function QuoteForm() {
         acceptTerms: false,
       });
       setErrors({});
-    } catch (error: any) {
-      const errorMessage =
-        error.response?.data?.message ||
+    } catch (error: unknown) {
+      let errorMessage =
         "Une erreur est survenue lors de l'envoi de votre demande";
+      if (typeof error === "object" && error !== null && "response" in error) {
+        const axiosLikeError = error as {
+          response?: { data?: { message?: string } };
+        };
+        errorMessage = axiosLikeError.response?.data?.message || errorMessage;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
       showError(errorMessage);
     } finally {
       setIsSubmitting(false);

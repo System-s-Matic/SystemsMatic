@@ -457,7 +457,7 @@ describe('BackofficeController', () => {
         const id = 'quote-123';
         const data = {
           status: 'PROCESSING',
-          data: { processedAt: new Date() },
+          data: { document: 'doc.pdf' },
         };
         const updatedQuote = { ...mockQuote, status: 'PROCESSING' };
         quotesService.updateStatus.mockResolvedValue(updatedQuote as any);

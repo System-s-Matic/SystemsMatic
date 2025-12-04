@@ -17,6 +17,8 @@ describe("StatsSection", () => {
     processing: 3,
     sent: 4,
     accepted: 3,
+    rejected: 0,
+    conversionRate: "0.00",
   };
 
   it("devrait afficher les statistiques des rendez-vous", () => {
@@ -95,7 +97,10 @@ describe("StatsSection", () => {
     const incompleteStats = {
       total: 5,
       pending: 2,
-      // confirmed, completed, cancelled, rejected manquants
+      confirmed: 0,
+      completed: 0,
+      cancelled: 0,
+      rejected: 0,
     };
 
     render(

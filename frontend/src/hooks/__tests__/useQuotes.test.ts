@@ -63,7 +63,7 @@ describe("useQuotes", () => {
     });
 
     it("devrait charger les devis avec un filtre", async () => {
-      const mockQuotes: any[] = [];
+      const mockQuotes: [] = [];
       const mockResponse = { data: mockQuotes, total: 0, page: 1, limit: 50 };
       mockedBackofficeApi.getQuotes.mockResolvedValue(mockResponse);
 
@@ -115,8 +115,11 @@ describe("useQuotes", () => {
       const mockStats = {
         total: 10,
         pending: 5,
+        processing: 0,
+        sent: 0,
         accepted: 3,
         rejected: 2,
+        conversionRate: "0.00",
       };
 
       mockedBackofficeApi.getQuotesStats.mockResolvedValue(mockStats);
@@ -161,7 +164,15 @@ describe("useQuotes", () => {
         page: 1,
         limit: 50,
       });
-      mockedBackofficeApi.getQuotesStats.mockResolvedValue({});
+      mockedBackofficeApi.getQuotesStats.mockResolvedValue({
+        total: 0,
+        pending: 0,
+        processing: 0,
+        sent: 0,
+        accepted: 0,
+        rejected: 0,
+        conversionRate: "0.00",
+      });
 
       const { result } = renderHook(() => useQuotes());
 
@@ -245,7 +256,15 @@ describe("useQuotes", () => {
         page: 1,
         limit: 50,
       });
-      mockedBackofficeApi.getQuotesStats.mockResolvedValue({});
+      mockedBackofficeApi.getQuotesStats.mockResolvedValue({
+        total: 0,
+        pending: 0,
+        processing: 0,
+        sent: 0,
+        accepted: 0,
+        rejected: 0,
+        conversionRate: "0.00",
+      });
     });
 
     it("devrait sauvegarder un devis avec succès", async () => {
@@ -435,7 +454,15 @@ describe("useQuotes", () => {
         page: 1,
         limit: 50,
       });
-      mockedBackofficeApi.getQuotesStats.mockResolvedValue({});
+      mockedBackofficeApi.getQuotesStats.mockResolvedValue({
+        total: 0,
+        pending: 0,
+        processing: 0,
+        sent: 0,
+        accepted: 0,
+        rejected: 0,
+        conversionRate: "0.00",
+      });
     });
 
     it("devrait accepter un devis avec succès", async () => {
@@ -554,7 +581,15 @@ describe("useQuotes", () => {
         page: 1,
         limit: 50,
       });
-      mockedBackofficeApi.getQuotesStats.mockResolvedValue({});
+      mockedBackofficeApi.getQuotesStats.mockResolvedValue({
+        total: 0,
+        pending: 0,
+        processing: 0,
+        sent: 0,
+        accepted: 0,
+        rejected: 0,
+        conversionRate: "0.00",
+      });
     });
 
     it("devrait rejeter un devis avec succès", async () => {

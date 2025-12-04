@@ -19,7 +19,9 @@ jest.mock("../../lib/date-utils", () => ({
 
 jest.mock("../../lib/validation", () => ({
   sanitizers: {
-    form: (data: any) => data,
+    // On retourne simplement les données sans les modifier,
+    // en gardant une signature compatible avec CreateAppointmentDto
+    form: (data: CreateAppointmentDto) => data,
   },
 }));
 
@@ -28,12 +30,19 @@ jest.mock("../../lib/toast", () => ({
 }));
 
 jest.mock("../NativeDateTimePicker", () => {
+  interface MockNativeDateTimePickerProps {
+    value: Date | null;
+    onChange: (date: Date | null) => void;
+    className?: string;
+    error?: boolean;
+  }
+
   return function MockNativeDateTimePicker({
     value,
     onChange,
     className,
     error,
-  }: any) {
+  }: MockNativeDateTimePickerProps) {
     return (
       <div
         data-testid="native-datetime-picker"

@@ -58,10 +58,12 @@ export default function AcceptAppointmentPage() {
         setMessage("Le rendez-vous a été accepté avec succès.");
         setAppointment(result.appointment);
         showSuccess("Rendez-vous accepté");
-      } catch (error: any) {
+      } catch (error: unknown) {
         setStatus("error");
-        const errorMessage =
-          error.message || "Erreur lors de l'acceptation du rendez-vous";
+        let errorMessage = "Erreur lors de l'acceptation du rendez-vous";
+        if (error instanceof Error) {
+          errorMessage = error.message;
+        }
         setMessage(errorMessage);
         showError(errorMessage);
       }

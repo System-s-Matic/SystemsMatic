@@ -25,9 +25,12 @@ export default function RejectReschedulePage() {
       try {
         await appointmentApi.rejectReschedule(appointmentId, token);
         setSuccess(true);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Erreur lors du refus de la reprogrammation:", err);
-        setError(err.message || "Erreur lors du refus de la reprogrammation");
+        setError(
+          (err as Error).message ||
+            "Erreur lors du refus de la reprogrammation"
+        );
       } finally {
         setLoading(false);
       }

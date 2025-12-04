@@ -31,9 +31,16 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
       setPassword("");
 
       showSuccess("Connexion réussie !");
-    } catch (error: any) {
-      const errorMessage =
-        error.response?.data?.message || "Erreur de connexion";
+    } catch (error: unknown) {
+      let errorMessage = "Erreur de connexion";
+      if (typeof error === "object" && error !== null && "response" in error) {
+        const axiosLikeError = error as {
+          response?: { data?: { message?: string } };
+        };
+        errorMessage = axiosLikeError.response?.data?.message || errorMessage;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
       setAuthError(errorMessage);
       showError(errorMessage);
     } finally {

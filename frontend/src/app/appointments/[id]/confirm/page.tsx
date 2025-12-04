@@ -32,11 +32,21 @@ export default function ConfirmReschedulePage() {
           "Votre rendez-vous a été confirmé avec la nouvelle date proposée."
         );
         showSuccess("Rendez-vous confirmé avec succès");
-      } catch (error: any) {
+      } catch (error: unknown) {
         setStatus("error");
-        const errorMessage =
-          error.response?.data?.message ||
-          "Erreur lors de la confirmation du rendez-vous";
+        let errorMessage = "Erreur lors de la confirmation du rendez-vous";
+        if (
+          typeof error === "object" &&
+          error !== null &&
+          "response" in error
+        ) {
+          const axiosLikeError = error as {
+            response?: { data?: { message?: string } };
+          };
+          errorMessage = axiosLikeError.response?.data?.message || errorMessage;
+        } else if (error instanceof Error) {
+          errorMessage = error.message;
+        }
         setMessage(errorMessage);
         showError(errorMessage);
       }

@@ -92,10 +92,12 @@ export default function ProposeReschedulePage() {
         }
 
         setStatus("form");
-      } catch (error: any) {
+      } catch (error: unknown) {
         setStatus("error");
-        const errorMessage =
-          error.message || "Erreur lors du chargement du rendez-vous";
+        let errorMessage = "Erreur lors du chargement du rendez-vous";
+        if (error instanceof Error) {
+          errorMessage = error.message;
+        }
         setMessage(errorMessage);
         showError(errorMessage);
       }
@@ -155,10 +157,12 @@ export default function ProposeReschedulePage() {
         "La nouvelle date a été proposée avec succès. Le client va recevoir un email de confirmation."
       );
       showSuccess("Reprogrammation proposée avec succès");
-    } catch (error: any) {
+    } catch (error: unknown) {
       setStatus("form");
-      const errorMessage =
-        error.message || "Erreur lors de la proposition de reprogrammation";
+      let errorMessage = "Erreur lors de la proposition de reprogrammation";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
       setMessage(errorMessage);
       showError(errorMessage);
     }

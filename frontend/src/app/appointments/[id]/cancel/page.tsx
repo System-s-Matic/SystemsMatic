@@ -30,11 +30,21 @@ export default function CancelAppointmentPage() {
         setStatus("success");
         setMessage("Votre rendez-vous a été annulé avec succès.");
         showSuccess("Rendez-vous annulé avec succès");
-      } catch (error: any) {
+      } catch (error: unknown) {
         setStatus("error");
-        const errorMessage =
-          error.response?.data?.message ||
-          "Erreur lors de l'annulation du rendez-vous";
+        let errorMessage = "Erreur lors de l'annulation du rendez-vous";
+        if (
+          typeof error === "object" &&
+          error !== null &&
+          "response" in error
+        ) {
+          const axiosLikeError = error as {
+            response?: { data?: { message?: string } };
+          };
+          errorMessage = axiosLikeError.response?.data?.message || errorMessage;
+        } else if (error instanceof Error) {
+          errorMessage = error.message;
+        }
         setMessage(errorMessage);
         showError(errorMessage);
       }

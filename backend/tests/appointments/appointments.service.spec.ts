@@ -294,7 +294,7 @@ describe('AppointmentsService', () => {
       mockValidationService.canCancelAppointment.mockReturnValue(true);
 
       // Act
-      const result = service.canCancelAppointment(appointment);
+      const result = service.canCancelAppointment(appointment as any);
 
       // Assert
       expect(result).toBe(true);
@@ -310,7 +310,7 @@ describe('AppointmentsService', () => {
       mockValidationService.canCancelAppointment.mockReturnValue(false);
 
       // Act
-      const result = service.canCancelAppointment(appointment);
+      const result = service.canCancelAppointment(appointment as any);
 
       // Assert
       expect(result).toBe(false);

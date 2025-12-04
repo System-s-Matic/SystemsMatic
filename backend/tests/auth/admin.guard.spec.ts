@@ -3,10 +3,21 @@ import { AdminGuard } from '../../src/auth/guards/admin.guard';
 import { ForbiddenException } from '@nestjs/common';
 import { ExecutionContext } from '@nestjs/common';
 
+interface MockRequest {
+  user:
+    | {
+        id: string;
+        email: string;
+        role?: string | null;
+      }
+    | null
+    | undefined;
+}
+
 describe('AdminGuard', () => {
   let guard: AdminGuard;
   let mockExecutionContext: jest.Mocked<ExecutionContext>;
-  let mockRequest: any;
+  let mockRequest: MockRequest;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({

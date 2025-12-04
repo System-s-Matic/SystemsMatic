@@ -99,6 +99,8 @@ describe("useAppointments", () => {
         pending: 5,
         confirmed: 3,
         cancelled: 2,
+        completed: 0,
+        rejected: 0,
       };
 
       mockedBackofficeApi.getStats.mockResolvedValue(mockStats);
@@ -141,7 +143,14 @@ describe("useAppointments", () => {
     it("devrait mettre à jour le statut d'un rendez-vous avec succès", async () => {
       mockedBackofficeApi.updateAppointmentStatus.mockResolvedValue(undefined);
       mockedBackofficeApi.getAppointments.mockResolvedValue([]);
-      mockedBackofficeApi.getStats.mockResolvedValue({});
+      mockedBackofficeApi.getStats.mockResolvedValue({
+        total: 0,
+        pending: 0,
+        confirmed: 0,
+        cancelled: 0,
+        completed: 0,
+        rejected: 0,
+      });
 
       const { result } = renderHook(() => useAppointments());
 
@@ -163,7 +172,14 @@ describe("useAppointments", () => {
     it("devrait mettre à jour le statut avec une date programmée", async () => {
       mockedBackofficeApi.updateAppointmentStatus.mockResolvedValue(undefined);
       mockedBackofficeApi.getAppointments.mockResolvedValue([]);
-      mockedBackofficeApi.getStats.mockResolvedValue({});
+      mockedBackofficeApi.getStats.mockResolvedValue({
+        total: 0,
+        pending: 0,
+        confirmed: 0,
+        cancelled: 0,
+        completed: 0,
+        rejected: 0,
+      });
 
       const { result } = renderHook(() => useAppointments());
 
@@ -226,7 +242,14 @@ describe("useAppointments", () => {
   describe("deleteAppointment", () => {
     beforeEach(() => {
       mockedBackofficeApi.getAppointments.mockResolvedValue([]);
-      mockedBackofficeApi.getStats.mockResolvedValue({});
+      mockedBackofficeApi.getStats.mockResolvedValue({
+        total: 0,
+        pending: 0,
+        confirmed: 0,
+        cancelled: 0,
+        completed: 0,
+        rejected: 0,
+      });
     });
 
     it("devrait supprimer un rendez-vous avec succès", async () => {
@@ -402,7 +425,14 @@ describe("useAppointments", () => {
     beforeEach(() => {
       mockedBackofficeApi.updateAppointmentStatus.mockResolvedValue(undefined);
       mockedBackofficeApi.getAppointments.mockResolvedValue([]);
-      mockedBackofficeApi.getStats.mockResolvedValue({});
+      mockedBackofficeApi.getStats.mockResolvedValue({
+        total: 0,
+        pending: 0,
+        confirmed: 0,
+        cancelled: 0,
+        completed: 0,
+        rejected: 0,
+      });
     });
 
     it("devrait afficher le bon message pour CONFIRMED", async () => {

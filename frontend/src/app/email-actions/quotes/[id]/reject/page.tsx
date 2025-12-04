@@ -58,9 +58,12 @@ export default function RejectQuotePage() {
         setMessage("Le devis a été refusé avec succès.");
         setQuote(result.quote);
         showSuccess("Devis refusé");
-      } catch (error: any) {
+      } catch (error: unknown) {
         setStatus("error");
-        const errorMessage = error.message || "Erreur lors du refus du devis";
+        let errorMessage = "Erreur lors du refus du devis";
+        if (error instanceof Error) {
+          errorMessage = error.message;
+        }
         setMessage(errorMessage);
         showError(errorMessage);
       }

@@ -25,12 +25,19 @@ jest.mock("../../lib/date-utils", () => ({
 }));
 
 jest.mock("../AdminDateTimePicker", () => {
+  interface MockAdminDateTimePickerProps {
+    value: string;
+    onChange: (value: string) => void;
+    onConfirm: () => void;
+    onCancel: () => void;
+  }
+
   return function MockAdminDateTimePicker({
     value,
     onChange,
     onConfirm,
     onCancel,
-  }: any) {
+  }: MockAdminDateTimePickerProps) {
     return (
       <div data-testid="admin-datetime-picker">
         <input

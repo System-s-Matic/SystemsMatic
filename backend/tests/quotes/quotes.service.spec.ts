@@ -3,6 +3,7 @@ import { QuotesService } from '../../src/quotes/quotes.service';
 import { PrismaService } from '../../src/prisma/prisma.service';
 import { QuoteEmailService } from '../../src/quotes/quote-email.service';
 import { QuoteManagementService } from '../../src/quotes/quote-management.service';
+import { UpdateQuoteDto } from '../../src/quotes/dto/update-quote.dto';
 
 describe('QuotesService', () => {
   let service: QuotesService;
@@ -371,9 +372,9 @@ describe('QuotesService', () => {
   describe('updateQuote', () => {
     it('devrait mettre à jour un devis', async () => {
       // Arrange
-      const updateData = {
-        projectDescription: 'Nouvelle description',
-        acceptPhone: false,
+      const updateData: UpdateQuoteDto = {
+        status: 'PROCESSING',
+        quoteDocument: 'nouveau-document.pdf',
       };
       const updatedQuote = { ...mockQuote, ...updateData };
       mockQuoteManagementService.updateQuote.mockResolvedValue(updatedQuote);

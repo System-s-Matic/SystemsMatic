@@ -58,10 +58,12 @@ export default function RejectAppointmentPage() {
         setMessage("Le rendez-vous a été refusé avec succès.");
         setAppointment(result.appointment);
         showSuccess("Rendez-vous refusé");
-      } catch (error: any) {
+      } catch (error: unknown) {
         setStatus("error");
-        const errorMessage =
-          error.message || "Erreur lors du refus du rendez-vous";
+        let errorMessage = "Erreur lors du refus du rendez-vous";
+        if (error instanceof Error) {
+          errorMessage = error.message;
+        }
         setMessage(errorMessage);
         showError(errorMessage);
       }
