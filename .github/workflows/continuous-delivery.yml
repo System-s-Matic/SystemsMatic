@@ -1,0 +1,93 @@
+name: Continuous Delivery — System's Matic (GHCR)
+
+on:
+  workflow_run:
+    workflows: ["Continuous Integration — System's Matic"]
+    branches: [main]
+    types: [completed]
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
+jobs:
+  check-ci-status:
+    runs-on: ubuntu-latest
+    outputs:
+      proceed: ${{ steps.check.outputs.proceed }}
+    steps:
+      - id: check
+        run: |
+          if [ "${{ github.event.workflow_run.conclusion }}" = "success" ]; then
+            echo "proceed=true" >> $GITHUB_OUTPUT
+          else
+            echo "CI failed — cancelling Delivery."
+            echo "proceed=false" >> $GITHUB_OUTPUT
+          fi
+
+  build_backend:
+    name: Build & Push Backend Image (GHCR)
+    runs-on: ubuntu-latest
+    needs: check-ci-status
+    if: needs.check-ci-status.outputs.proceed == 'true'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & Push Backend
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile.prod
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/systemsmatic-backend:latest
+            ghcr.io/${{ github.repository_owner }}/systemsmatic-backend:${{ github.sha }}
+
+  build_frontend:
+    name: Build & Push Frontend Image (GHCR)
+    runs-on: ubuntu-latest
+    needs: build_backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & Push Frontend
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile.prod
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/systemsmatic-frontend:latest
+            ghcr.io/${{ github.repository_owner }}/systemsmatic-frontend:${{ github.sha }}
+
+  notify:
+    name: Delivery Status Notification
+    runs-on: ubuntu-latest
+    needs: [build_backend, build_frontend]
+    if: always()
+    steps:
+      - uses: Ilshidur/action-discord@master
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        with:
+          args: |
+            **Continuous Delivery terminée — System's Matic**
+            Backend: ${{ needs.build_backend.result }}
+            Frontend: ${{ needs.build_frontend.result }}

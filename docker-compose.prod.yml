@@ -1,9 +1,7 @@
 services:
   frontend:
     container_name: systemsmatic-frontend
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile.prod
+    image: ghcr.io/kenlark/systemsmatic-frontend:latest
     volumes:
       - frontend_build:/app/out
     expose:
@@ -11,9 +9,7 @@ services:
 
   backend:
     container_name: systemsmatic-backend
-    build:
-      context: ./backend
-      dockerfile: Dockerfile.prod
+    image: ghcr.io/kenlark/systemsmatic-backend:latest
     env_file: ./backend/.env.production
     expose:
       - "3001"
