@@ -35,6 +35,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Transformer le repository owner en minuscules
+      - name: Normalize repo owner to lowercase
+        run: echo "OWNER_LC=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_ENV
+
       - name: Login to GHCR
         uses: docker/login-action@v3
         with:
@@ -49,8 +53,8 @@ jobs:
           file: ./backend/Dockerfile.prod
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/systemsmatic-backend:latest
-            ghcr.io/${{ github.repository_owner }}/systemsmatic-backend:${{ github.sha }}
+            ghcr.io/${{ env.OWNER_LC }}/systemsmatic-backend:latest
+            ghcr.io/${{ env.OWNER_LC }}/systemsmatic-backend:${{ github.sha }}
 
   build_frontend:
     name: Build & Push Frontend Image (GHCR)
@@ -59,6 +63,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      # Transformer le repository owner en minuscules
+      - name: Normalize repo owner to lowercase
+        run: echo "OWNER_LC=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_ENV
 
       - name: Login to GHCR
         uses: docker/login-action@v3
@@ -74,8 +82,8 @@ jobs:
           file: ./frontend/Dockerfile.prod
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/systemsmatic-frontend:latest
-            ghcr.io/${{ github.repository_owner }}/systemsmatic-frontend:${{ github.sha }}
+            ghcr.io/${{ env.OWNER_LC }}/systemsmatic-frontend:latest
+            ghcr.io/${{ env.OWNER_LC }}/systemsmatic-frontend:${{ github.sha }}
 
   notify:
     name: Delivery Status Notification
@@ -88,6 +96,6 @@ jobs:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         with:
           args: |
-            **Continuous Delivery terminée — System's Matic**
+            Continuous Delivery terminée — System's Matic
             Backend: ${{ needs.build_backend.result }}
             Frontend: ${{ needs.build_frontend.result }}
