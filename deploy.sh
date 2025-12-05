@@ -4,6 +4,10 @@ set -e
 # Project directory
 cd /home/ubuntu/SystemsMatic
 
+# Update repository
+echo "Mise à jour du repository..."
+git pull origin main
+
 # Pull latest images from GHCR
 echo "Pull des dernières images..."
 docker compose -f docker-compose.prod.yml pull
